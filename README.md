@@ -21,6 +21,6 @@ counts <- spillR::prepare_data(rate, shape, sm)
 counts_compensated <- spillR::compensate(counts)
 
 # plot comparison
-spillR::plot_density(counts[,1], counts_compensated[,1])
+spillR::plot(counts[,1], counts_compensated[,1])
 ```
  
