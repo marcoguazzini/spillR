@@ -1,4 +1,4 @@
-plot <- function(counts, comp_counts, chan_name){
+plot_density <- function(counts, comp_counts, chan_name){
   ch1 <- chan_name[1]
   ch2 <- chan_name[2]
   
