@@ -5,7 +5,7 @@ How to use our package:
 ```r
 # install and load pkg
 devtools::install_github("marcoguazzini/spillR")
-library("SpillR")
+library("spillR")
 
 # parameters of true expressions
 shape <- 9.0
