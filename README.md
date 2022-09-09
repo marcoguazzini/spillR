@@ -22,7 +22,7 @@ sm <- spillR::load_spillover()
 counts <- spillR::prepare_data(sm, shape, rate, n_cells)
 
 # add spillover
-counts_compensated <- spillR::compensate(counts, sm, n_cells)
+counts_compensated <- spillR::compensate(counts, sm)
 
 # plot comparison
 spillR::plot(counts, counts_compensated, channel_names)
