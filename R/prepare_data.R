@@ -1,4 +1,4 @@
-prepare_data <- function(spillover_matrix,rate,shape, n_cells){
+prepare_data <- function(spillover_matrix,shape,rate, n_cells){
     #' Generate synthetic data according to the hierarchical model
     #' Args:
     #'     spillover_matrix: square matrix of spillover values
