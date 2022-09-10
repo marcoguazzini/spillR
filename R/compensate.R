@@ -1,4 +1,8 @@
 compensate <- function(counts,spillover_matrix){
+ library(tibble)
+ library(dplyr)
+ library(tidyr)
+library(extraDistr)
   # lambda equal a zero vector, so that offset is zero
   smc_scaled <- 10*spillover_matrix
   diag(smc_scaled) <- 1.0
