@@ -30,7 +30,7 @@ spillR::plot(counts, counts_compensated, channel_names)
 ```
  
 ```r 
-# set this for better image resolution fig.width=10, fig.height=7, out.width="100%"
 # DAG representing the spillover
+# set this for better image resolution fig.width=10, fig.height=7, out.width="100%"
 spillR::spill_dag(spillover_matrix)
 ```
