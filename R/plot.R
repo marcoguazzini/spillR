@@ -1,4 +1,13 @@
 plot <- function(counts, comp_counts, chan_name){
+  library(tibble)
+  library(dplyr)
+  library(tidyr)
+  library(RColorBrewer)
+  library(magrittr)
+  library(cowplot)
+  library(flowCore)
+  library(ggplot2)
+  
   ch1 <- chan_name[1]
   ch2 <- chan_name[2]
   
