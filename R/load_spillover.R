@@ -1,4 +1,6 @@
 load_spillover <- function(){
+library(CATALYST)
+library(SingleCellExperiment)
 data(ss_exp, package = "CATALYST")
 # specify mass channels stained for & debarcode
 bc_ms <- c(139, 141:156, 158:176)
