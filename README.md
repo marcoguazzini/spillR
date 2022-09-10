@@ -29,7 +29,8 @@ counts_compensated <- spillR::compensate(counts, sm)
 spillR::plot(counts, counts_compensated, channel_names)
 ```
  
-```r fig.width=10, fig.height=7, out.width="100%"
+```r 
+# set this for better image resolution fig.width=10, fig.height=7, out.width="100%"
 # DAG representing the spillover
 spillR::spill_dag(spillover_matrix)
 ```
