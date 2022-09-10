@@ -18,6 +18,7 @@ channel_names <- c("Nd143Di","Nd148Di")
 # load data from CATALYST pkg
 sm <- spillR::load_spillover()
 
+
 # generate counts with spillover
 counts <- spillR::prepare_data(sm, shape, rate, n_cells)
 
@@ -28,3 +29,7 @@ counts_compensated <- spillR::compensate(counts, sm)
 spillR::plot(counts, counts_compensated, channel_names)
 ```
  
+```r fig.width=10, fig.height=7, out.width="100%"
+# DAG representing the spillover
+spillR::spill_dag(spillover_matrix)
+```
