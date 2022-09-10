@@ -1,11 +1,13 @@
 compensate <- function(counts,spillover_matrix){
+library(CATALYST)
+library(flowCore)
+library(SingleCellExperiment)
 library(tibble)
 library(dplyr)
 library(tidyr)
-library(extraDistr)
-library(matrixStats)
 library(future.apply)
 plan(multisession, workers = 8)
+library(extraDistr)
   # lambda equal a zero vector, so that offset is zero
   smc_scaled <- 10*spillover_matrix
   diag(smc_scaled) <- 1.0
