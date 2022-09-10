@@ -1,7 +1,4 @@
 compensate <- function(counts,spillover_matrix){
-library(CATALYST)
-library(flowCore)
-library(SingleCellExperiment)
 library(tibble)
 library(dplyr)
 library(tidyr)
