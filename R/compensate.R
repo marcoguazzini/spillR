@@ -3,6 +3,7 @@ library(tibble)
 library(dplyr)
 library(tidyr)
 library(extraDistr)
+library(matrixStats)
 library(future.apply)
 plan(multisession, workers = 8)
   # lambda equal a zero vector, so that offset is zero
