@@ -47,9 +47,9 @@ library(extraDistr)
   n = ncol(spillover_matrix)
   n_cells <- nrow(counts)
   val <- as.numeric(tb_info[nrow(tb_info),1:n])
-  lambda_compensated = matrix(val, n_cells, ncol=ncol(tb_info)-1, byrow=TRUE)
-  compensated_counts = matrix(rpois(n*n_sample, lambda = lambda_compensated),
-                              nrow = n_sample, byrow=TRUE)
+  lambda_compensated = matrix(val, nrow = n_cells, ncol=ncol(tb_info)-1, byrow=TRUE)
+  compensated_counts = matrix(rpois(n*n_cells, lambda = lambda_compensated),
+                              nrow = n_cells, byrow=TRUE)
   colnames(compensated_counts) <- channel_names
  
   return(compensated_counts)
