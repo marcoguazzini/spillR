@@ -45,7 +45,7 @@ library(extraDistr)
   }
   tb_info <- mutate(tb_info, n = 1:nrow(tb_info))
   n = ncol(spillover_matrix)
-  n_sample <- nrow(counts)
+  n_cells <- nrow(counts)
   val <- as.numeric(tb_info[nrow(tb_info),1:n])
   lambda_compensated = matrix(val, n_cells, ncol=ncol(tb_info)-1, byrow=TRUE)
   compensated_counts = matrix(rpois(n*n_sample, lambda = lambda_compensated),
