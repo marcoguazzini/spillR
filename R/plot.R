@@ -39,13 +39,13 @@ plot <- function(counts, comp_counts, chan_name){
   
 plot_grid(
  ggplot(tb_counts_combined, aes_string(x = ch1, y =ch2)) +
-    geom_hex(bins = 32) +
+    geom_hex(bins = 64) +
     coord_fixed() +
     colorscale +
     facet_wrap(~comp),
   
  ggplot(tb_counts_combined_transformed, aes_string(x = ch1, y = ch2)) +
-    geom_hex(bins = 32) +
+    geom_hex(bins = 64) +
     coord_fixed() +
     colorscale +
     facet_wrap(~comp))
