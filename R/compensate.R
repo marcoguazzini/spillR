@@ -47,7 +47,7 @@ library(extraDistr)
   val <- as.numeric(tb_info[nrow(tb_info),1:n])
   lambda_compensated = matrix(val, nrow = n_cells, ncol=ncol(tb_info)-1, byrow=TRUE)
   compensated_counts = matrix(rpois(n*n_cells, lambda = lambda_compensated),
-                              nrow = n_cells, byrow=TRUE)
+                              nrow = n_cells)
   colnames(compensated_counts) <- channel_names
  
   return(compensated_counts)
