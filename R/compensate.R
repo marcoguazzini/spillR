@@ -12,7 +12,7 @@ library(extraDistr)
   tb_info <- as_tibble(t(lambda))
   tb_info <- tb_info[-1,]
   # update fit including spillover by iterating over all markers
-  n_iter <- 100 # this is the number of times to iterate over the graph
+  n_iter <- 10 # this is the number of times to iterate over the graph
   for(iter in 1:n_iter) {
     
     update <- function(j) {
