@@ -6,8 +6,6 @@ library(future.apply)
 plan(multisession, workers = 8)
 library(extraDistr)
   # lambda equal a zero vector, so that offset is zero
-  smc_scaled <- 10*spillover_matrix
-  diag(smc_scaled) <- 1.0
   channel_names <- colnames(counts)
   lambda <- rep(0, length(channel_names))
   names(lambda) <- channel_names
@@ -20,7 +18,7 @@ library(extraDistr)
     update <- function(j) {
       # prepare and fit
       y <- counts[,j]                        # this is the response marker
-      s <- smc_scaled[-j,j]                         # s is incoming spillover
+      s <- spillover_matrix[-j,j]                         # s is incoming spillover
       offset <- sum(s*lambda[-j])            # sum of s_j lambda_j products
       fit <- fit_gampois(y, offset = offset) # same now with t and offset
       
