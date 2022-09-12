@@ -6,13 +6,18 @@ library(future.apply)
 plan(multisession, workers = 8)
 library(extraDistr)
   # lambda equal a zero vector, so that offset is zero
-  channel_names <- colnames(counts)
-  lambda <- rep(0, length(channel_names))
-  names(lambda) <- channel_names
-  tb_info <- as_tibble(t(lambda))
-  tb_info <- tb_info[-1,]
+  #channel_names <- colnames(counts)
+  #lambda <- rep(0, length(channel_names))
+  #names(lambda) <- channel_names
+  #tb_info <- as_tibble(t(lambda))
+  #tb_info <- tb_info[-1,]
+
   # update fit including spillover by iterating over all markers
   n_iter <- 10 # this is the number of times to iterate over the graph
+  modes <- matrix(NA, nrow = n_iter, ncol = length(channel_names))
+  shapes <- matrix(NA, nrow = n_iter, ncol = length(channel_names))
+  rates <- matrix(NA, nrow = n_iter, ncol = length(channel_names))
+  colnames(modes) = colnames(shapes) = colnames(rates) <- channel_names
   for(iter in 1:n_iter) {
     
     update <- function(j) {
@@ -24,7 +29,7 @@ library(extraDistr)
       
       # update current estimate of lambda, three options:
       # 1) mode
-      find_mode(fit)
+     # find_mode(fit)
       # 2) draw from gamma
       # rgamma(n = 1, shape = fit$shape_hat, rate = fit$rate_hat)
       # 3) MCMC style proposal
@@ -33,21 +38,37 @@ library(extraDistr)
       #   proposal <- 0
       # proposal
     }
-    lambda_new <- future_sapply(seq(ncol(counts)), update, future.seed = TRUE)
+    #lambda_new <- future_sapply(seq(ncol(counts)), update, future.seed = TRUE)
     # update for next iteration
-    names(lambda_new) = channel_names
-    lambda <- lambda_new
+    #names(lambda_new) = channel_names
+    #lambda <- lambda_new
     
-    # bookkeeping
-    tb_info <- bind_rows(tb_info, lambda)
+    fit_list <- future_lapply(seq(ncol(counts)), update, future.seed = TRUE)
+  
+  # bookkeeping
+  modes[iter,] <- sapply(fit_list, function(fit) find_mode(fit))
+  shapes[iter,] <- sapply(fit_list, function(fit) fit$shape_hat)
+  rates[iter,] <- sapply(fit_list, function(fit) fit$rate_hat)
+  # update for next iteration
+  lambda <- modes[iter,]
   }
-  tb_info <- mutate(tb_info, n = 1:nrow(tb_info))
-  n = ncol(spillover_matrix)
-  n_cells <- nrow(counts)
-  val <- as.numeric(tb_info[nrow(tb_info),1:n])
-  lambda_compensated = matrix(val, nrow = n_cells, ncol=ncol(tb_info)-1, byrow=TRUE)
-  compensated_counts = matrix(rpois(n*n_cells, lambda = lambda_compensated),
-                              nrow = n_cells)
+                         
+                         
+                                            
+   # generate with our method spillR::compensate
+lambdas_spillr <- matrix(
+  rgamma(n_cells*length(channel_names), 
+         shape = shapes[n_iter,], 
+         rate = rates[n_iter,]),
+  nrow = n_cells,
+  ncol = length(channel_names), 
+  byrow = TRUE
+  )
+compensated_counts <- matrix(
+  rpois(length(lambdas_spillr), lambda = lambdas_spillr),
+  nrow = n_cells,
+  ncol = length(channel_names)
+  )
   colnames(compensated_counts) <- channel_names
  
   return(compensated_counts)
