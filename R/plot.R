@@ -37,14 +37,14 @@ plot <- function(counts, comp_counts, chan_name){
   
 plot_grid(
  ggplot(tb_counts_combined, aes_string(x = ch1, y =ch2)) +
-    geom_hex(bins = 20) +
+    geom_hex(bins = 16) +
   ggtitle("Untransformed data")+
     coord_fixed() +
     colorscale +
     facet_wrap(~comp),
   
  ggplot(tb_counts_combined_transformed, aes_string(x = ch1, y = ch2)) +
-    geom_hex(bins = 20) +
+    geom_hex(bins = 16) +
    ggtitle("Transformed data with asinh(x/5) transformation")+
     coord_fixed() +
     colorscale +
