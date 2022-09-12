@@ -26,8 +26,6 @@ plot <- function(counts, comp_counts, chan_name){
   # compensate
   tb_counts_comp <- as_tibble(comp_counts)
   tb_counts_comp <- tb_counts_comp %>% select(ch1, ch2)
-  #tb_counts_comp %<>% mutate(cells1 = Er167Di-10)
-  #tb_counts_comp %<>% mutate(cells2 = Er168Di-10)
   tb_counts_comp %<>% mutate(cell = 1:nrow(tb_counts))
   tb_counts_comp %<>% mutate(comp = "our method spillR")
   
@@ -40,12 +38,14 @@ plot <- function(counts, comp_counts, chan_name){
 plot_grid(
  ggplot(tb_counts_combined, aes_string(x = ch1, y =ch2)) +
     geom_hex(bins = 64) +
+  ggtitle("Untransformed data")+
     coord_fixed() +
     colorscale +
     facet_wrap(~comp),
   
  ggplot(tb_counts_combined_transformed, aes_string(x = ch1, y = ch2)) +
     geom_hex(bins = 64) +
+   ggtitle("Transformed data with asinh(x/5) transformation")+
     coord_fixed() +
     colorscale +
     facet_wrap(~comp))
