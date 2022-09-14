@@ -11,7 +11,10 @@ library(extraDistr)
   #names(lambda) <- channel_names
   #tb_info <- as_tibble(t(lambda))
   #tb_info <- tb_info[-1,]
-
+  
+  # lambda equal a zero vector, so that offset is zero
+  lambda <- rep(0, length(channel_names))
+  names(lambda) <- channel_names
   # update fit including spillover by iterating over all markers
   n_iter <- 10 # this is the number of times to iterate over the graph
   modes <- matrix(NA, nrow = n_iter, ncol = length(channel_names))
