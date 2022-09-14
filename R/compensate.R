@@ -29,7 +29,7 @@ library(extraDistr)
       s <- spillover_matrix[-j,j]                         # s is incoming spillover
       offset <- sum(s*lambda[-j])            # sum of s_j lambda_j products
       fit <- fit_gampois(y, offset = offset) # same now with t and offset
-      
+      }
       # update current estimate of lambda, three options:
       # 1) mode
      # find_mode(fit)
@@ -40,7 +40,7 @@ library(extraDistr)
       # if(proposal < 0)
       #   proposal <- 0
       # proposal
-    }
+
     #lambda_new <- future_sapply(seq(ncol(counts)), update, future.seed = TRUE)
     # update for next iteration
     #names(lambda_new) = channel_names
