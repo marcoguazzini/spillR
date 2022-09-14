@@ -3,8 +3,8 @@ Type: Package
 Title: Spillover compensation for mass cytometry data.
 Version: 0.1.0
 Author: Marco Guazzini 
-Maintainer: m.guazzini@student.maastrichtuniversity,nl
-Description: Spillover DAG visualization and compensation procedure for mass cytometry data.
+Maintainer: m.guazzini@student.maastrichtuniversity.nl
+Description: Spillover DAG visualization and compensation procedure for mass cytometry data
     
 License: LGPL-3
 Encoding: UTF-8
