@@ -1,6 +1,7 @@
-find_mode <- function(fit){
-  shape <- fit$shape_hat
-  rate <- fit$rate_hat
-  mode <- (shape - 1)/rate
-  return(mode)
+find_mode <- function(fit) {
+  mode <- 0
+  if(fit$shape_hat >= 1) {
+    mode <- (fit$shape_hat-1)/fit$rate_hat
+  }
+  mode
 }
