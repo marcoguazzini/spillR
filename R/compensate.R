@@ -4,7 +4,7 @@
 #' @import tibble
 #' @import tidyr
 #' @import future.apply
-#' @import extraDistr
+#' @importFrom extraDistr dgpois
 #' @export
 #'
 #' @param counts Matrix with proteins counts, on the rows the cells, on the column the markers
