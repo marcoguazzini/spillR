@@ -11,9 +11,6 @@
 #' rate <- 1
 #' param <- c(shape,rate)
 #' find_mode(param)
-
-
-
 find_mode <- function(fit) {
   mode <- 0
   if(fit$shape_hat >= 1) {
