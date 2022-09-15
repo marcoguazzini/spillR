@@ -19,6 +19,7 @@
 #' compensated_counts <- generate_data(counts,spillover_matrix)
 #' compensated_counts
 compensate <- function(counts,spillover_matrix){
+library(extraDist)
 library(future.apply)
 plan(multisession, workers = 8)
 
