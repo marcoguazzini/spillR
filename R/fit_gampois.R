@@ -22,11 +22,6 @@
 #' x <- rpois(n_sample, lambda = lambda + offset)
 #' fit <- fit_gampois(x = x, offset = offset, starting_value = c(1,0.1))
 #' fit
-
-
-
-
-
 fit_gampois <- function(x,
                         offset = 0,
                         starting_value = c(1,0.1)) {
