@@ -25,6 +25,7 @@
 fit_gampois <- function(x,
                         offset = 0,
                         starting_value = c(1,0.1)) {
+  library("extraDistr")
   dgpoisshifted <- function(y, r, b, t, log = FALSE) {
     pm <- 0
     if(!log) {
