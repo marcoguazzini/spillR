@@ -1,8 +1,35 @@
+#' Perform a Maximum Likelihood Estimation of a shifted gamma Poisson distribution
+#'
+#' @import extraDistr
+#' @import matrixStats
+#' @export
+#'
+#' @param x Vector of values representing the samples
+#'
+#' @param offset Value to be added in order to shift the gamma distribution
+#'  
+#' @param starting_value Starting value for the optimization matrix
+#'
+#' @return data_frame
+#'
+#' @examples
+#' set.seed(23)
+#' n_sample <- 1000
+#' shape <- 10
+#' rate <- 1
+#' lambda <- rgamma(n_sample, shape, rate)
+#' offset <- 10
+#' x <- rpois(n_sample, lambda = lambda + offset)
+#' fit <- fit_gampois(x = x, offset = offset, starting_value = c(1,0.1))
+#' fit
+
+
+
+
+
 fit_gampois <- function(x,
                         offset = 0,
                         starting_value = c(1,0.1)) {
-  library(extraDistr)
-  library(matrixStats)
   dgpoisshifted <- function(y, r, b, t, log = FALSE) {
     pm <- 0
     if(!log) {
