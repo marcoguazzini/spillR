@@ -7,7 +7,11 @@
 #' @import extraDistr
 #' @export
 #'
-#' @return \code{\link[tibble]{tibble}} data frame
+#' @param counts Matrix with proteins counts, on the rows the cells, on the column the markers
+#'
+#' @param spillover_matrix  Matrix number of markers x number of markers which contains the amount of spillover between markers
+#'   
+#' @return matrix
 #'
 #' @examples
 #' set.seed(23)
