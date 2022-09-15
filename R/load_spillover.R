@@ -10,13 +10,6 @@
 #' set.seed(23)
 #' sm <- load_spillover()
 #' sm
-
-
-
-
-
-
-
 load_spillover <- function(){
 data(ss_exp, package = "CATALYST")
 # specify mass channels stained for & debarcode
