@@ -16,9 +16,6 @@
 #' set.seed(23)
 #' sm <- spillR::load_spillover()
 #' spill_dag(sm)
-
-
-
 spill_dag <- function(spillover_matrix){
   
   graph <- as.data.frame(as.table(sm)) %>% 
