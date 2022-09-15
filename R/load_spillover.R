@@ -38,5 +38,5 @@ for(i in rownames(sm)) {
   }
 }
 diag(smc) <- 1.0
-smc
+return(smc)
 }
