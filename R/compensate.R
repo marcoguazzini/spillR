@@ -1,10 +1,29 @@
+#' Generate compensated counts dataset
+#'
+#' @import dplyr
+#' @import tibble
+#' @import tidyr
+#' @import future.apply
+#' @import extraDistr
+#' @export
+#'
+#' @return \code{\link[tibble]{tibble}} data frame
+#'
+#' @examples
+#' set.seed(23)
+#' sm <- spillR::load_spillover()
+#' counts <- spillR::prepare_data(sm, shape, rate, n_cells)
+#' compensated_counts <- generate_data(counts,spillover_matrix)
+#' compensated_counts
+
+
+
+
+
 compensate <- function(counts,spillover_matrix){
-library(tibble)
-library(dplyr)
-library(tidyr)
-library(future.apply)
+
 plan(multisession, workers = 8)
-library(extraDistr)
+
   
   #lambda <- rep(0, length(channel_names))
   #names(lambda) <- channel_names
