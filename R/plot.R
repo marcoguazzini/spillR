@@ -29,6 +29,10 @@ plot <- function(counts, comp_counts, chan_name){
   library("flowCore")
   library("ggplot2")
   library("cowplot")
+  library("tibble")
+  library("dplyr")
+ library("tidyr")
+  library("magrittr")
   
   ch1 <- chan_name[1]
   ch2 <- chan_name[2]
