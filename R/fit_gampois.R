@@ -1,6 +1,6 @@
 #' Perform a Maximum Likelihood Estimation of a shifted gamma Poisson distribution
 #'
-#' @import extraDistr
+#' @importFrom extraDistr dgpois
 #' @import matrixStats
 #' @export
 #'
