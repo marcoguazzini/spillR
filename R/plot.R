@@ -1,12 +1,32 @@
+#' Generate compensated counts dataset
+#'
+#' @import dplyr
+#' @import tibble
+#' @import tidyr
+#' @import RColorBrewer
+#' @import magrittr
+#' @import cowplot
+#' @import flowCore
+#' @import ggplot2
+#' @export
+#'
+#' @param counts Matrix with counts, on the rows the cells, on the column the markers
+#'
+#' @param comp_counts Matrix with compensated counts, on the rows the cells, on the column the markers
+#'
+#' @param chan_names  Desired channels we want to compare
+#'   
+#' @return plot
+#'
+#' @examples
+#' set.seed(23)
+#' sm <- spillR::load_spillover()
+#' counts <- spillR::prepare_data(sm, shape, rate, n_cells)
+#' compensated_counts <- generate_data(counts,spillover_matrix)
+#' spillR::plot(counts, comp_counts, chan_name)
+
 plot <- function(counts, comp_counts, chan_name){
-  library(tibble)
-  library(dplyr)
-  library(tidyr)
-  library(RColorBrewer)
-  library(magrittr)
-  library(cowplot)
-  library(flowCore)
-  library(ggplot2)
+
   
   ch1 <- chan_name[1]
   ch2 <- chan_name[2]
