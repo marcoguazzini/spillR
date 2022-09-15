@@ -21,8 +21,6 @@
 #' rates <- 1
 #' n_cells <- 5000
 #' counts <- prepare_data(sm, shapes, rates, n_cells)
-
-
 prepare_data <- function(spillover_matrix,shape,rate, n_cells){
  
     n <- ncol(spillover_matrix)
