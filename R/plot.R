@@ -24,7 +24,6 @@
 #' counts <- spillR::prepare_data(sm, shape, rate, n_cells)
 #' compensated_counts <- generate_data(counts,spillover_matrix)
 #' spillR::plot(counts, comp_counts, chan_name)
-
 plot <- function(counts, comp_counts, chan_name){
 
   
