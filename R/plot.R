@@ -25,7 +25,10 @@
 #' compensated_counts <- generate_data(counts,spillover_matrix)
 #' spillR::plot(counts, comp_counts, chan_name)
 plot <- function(counts, comp_counts, chan_name){
-
+  library(RColorBrewer)
+  library(flowCore)
+  library(ggplot2)
+  library(cowplot)
   
   ch1 <- chan_name[1]
   ch2 <- chan_name[2]
