@@ -19,11 +19,6 @@
 #' counts <- spillR::prepare_data(sm, shape, rate, n_cells)
 #' compensated_counts <- generate_data(counts,spillover_matrix)
 #' compensated_counts
-
-
-
-
-
 compensate <- function(counts,spillover_matrix){
 
 plan(multisession, workers = 8)
