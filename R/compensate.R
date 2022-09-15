@@ -3,7 +3,6 @@
 #' @import dplyr
 #' @import tibble
 #' @import tidyr
-#' @import future.apply
 #' @importFrom extraDistr dgpois
 #' @export
 #'
@@ -20,7 +19,7 @@
 #' compensated_counts <- generate_data(counts,spillover_matrix)
 #' compensated_counts
 compensate <- function(counts,spillover_matrix){
-
+library(future.apply)
 plan(multisession, workers = 8)
 
   
