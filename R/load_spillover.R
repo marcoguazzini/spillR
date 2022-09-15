@@ -1,6 +1,23 @@
+#' Loading spillover matrix from CATALYST package to generate synthetic dataset
+#'
+#' @import CATALYST
+#' @import SingleCellExperiment
+#' @export
+#'
+#' @return matrix
+#'
+#' @examples
+#' set.seed(23)
+#' sm <- load_spillover()
+#' sm
+
+
+
+
+
+
+
 load_spillover <- function(){
-library(CATALYST)
-library(SingleCellExperiment)
 data(ss_exp, package = "CATALYST")
 # specify mass channels stained for & debarcode
 bc_ms <- c(139, 141:156, 158:176)
@@ -21,5 +38,5 @@ for(i in rownames(sm)) {
   }
 }
 diag(smc) <- 1.0
-return(smc)
+smc
 }
