@@ -1,10 +1,25 @@
+#' Generate compensated counts dataset
+#'
+#' @import dplyr
+#' @import tibble
+#' @import tidyr
+#' @import tidygraph
+#' @import ggplot2
+#' @import ggraph
+#' @export
+#'
+#' @param spillover_matrix  Matrix number of markers x number of markers which contains the amount of spillover between markers
+#'   
+#' @return plot
+#'
+#' @examples
+#' set.seed(23)
+#' sm <- spillR::load_spillover()
+#' spill_dag(sm)
+
+
+
 spill_dag <- function(spillover_matrix){
-  library(tidygraph)
-  library(ggraph)
-  library(tibble)
-  library(dplyr)
-  library(tidyr)
-  library(ggplot2)
   
   graph <- as.data.frame(as.table(sm)) %>% 
     setNames(c('from', 'to', 'value')) %>% 
