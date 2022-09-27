@@ -25,7 +25,7 @@
 fit_gampois <- function(x,
                        offset = 0,
                        starting_value = c(1, 0.1, 0.1)) {
-  
+  library(matrixStats)
   dgpoisshifted_zeroinf <- function(y, r, b, p, t, log = FALSE) {
   pm <- 0
   if(!log) {
