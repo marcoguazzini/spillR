@@ -20,6 +20,7 @@
 #' compensated_counts
 compensate <- function(counts,spillover_matrix){
 library("extraDistr")
+library("VGAM")
 library("future.apply")
 plan(multisession, workers = 8)
 
@@ -38,6 +39,7 @@ plan(multisession, workers = 8)
   modes <- matrix(NA, nrow = n_iter, ncol = length(channel_names))
   shapes <- matrix(NA, nrow = n_iter, ncol = length(channel_names))
   rates <- matrix(NA, nrow = n_iter, ncol = length(channel_names))
+  p <- matrix(NA, nrow = n_iter, ncol = length(channel_names))
   colnames(modes) = colnames(shapes) = colnames(rates) <- channel_names
   for(iter in 1:n_iter) {
     
@@ -70,6 +72,7 @@ plan(multisession, workers = 8)
   modes[iter,] <- sapply(fit_list, function(fit) find_mode(fit))
   shapes[iter,] <- sapply(fit_list, function(fit) fit$shape_hat)
   rates[iter,] <- sapply(fit_list, function(fit) fit$rate_hat)
+  p[iter,] <- sapply(fit_list, function(fit) fit$p_hat)
   # update for next iteration
   lambda <- modes[iter,]
   }
@@ -86,7 +89,7 @@ lambdas_spillr <- matrix(
   byrow = TRUE
   )
 compensated_counts <- matrix(
-  rpois(length(lambdas_spillr), lambda = lambdas_spillr),
+  rzipois(length(lambdas_spillr), lambda = lambdas_spillr, pstr0 = p[n_iter,] ),
   nrow = n_cells,
   ncol = length(channel_names)
   )
