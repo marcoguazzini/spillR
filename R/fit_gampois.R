@@ -26,8 +26,6 @@ fit_gampois <- function(x,
                        offset = 0,
                        starting_value = c(1, 0.1, 0.1)) {
   
-  library("matrixStats")
-  
   dgpoisshifted_zeroinf <- function(y, r, b, p, t, log = FALSE) {
   pm <- 0
   if(!log) {
@@ -73,11 +71,10 @@ fit_gampois <- function(x,
     log_lik ,
     x = x,
     method = "L-BFGS-B",
-    lower = c(1,0.001, 0) 
+    lower = c(1, 0.001, 0) # to be fixed 
   )$par
   
   data.frame(shape_hat = res[1], 
              rate_hat = res[2],
              p_hat = res[3]) 
 }
-  
