@@ -25,7 +25,9 @@
 fit_gampois <- function(x,
                        offset = 0,
                        starting_value = c(1,0.1,0)) {
-  library(matrixStats)
+  
+  library("matrixStats")
+  
   dgpoisshifted_zeroinf <- function(y, r, b, p, t, log = FALSE) {
   pm <- 0
   if(!log) {
@@ -71,50 +73,11 @@ fit_gampois <- function(x,
     log_lik ,
     x = x,
     method = "L-BFGS-B",
-    lower = c(1,0.001, 0) # to be fixed 
+    lower = c(1,0.001, 0) 
   )$par
   
   data.frame(shape_hat = res[1], 
              rate_hat = res[2],
              p_hat = res[3]) 
 }
-  res <- optim(
-    starting_value,
-    log_lik ,
-    x = x,
-    method = "L-BFGS-B",
-    lower = c(1, 0.001)
-  )$par
   
-  data.frame(shape_hat = res[1], 
-             rate_hat = res[2]) 
-}
-  likelihood <- function(param,x){
-    shape <- param[1]
-    rate <- param[2]
-    if(offset == 0){
-      ll <- dgpois(x = x, 
-                   shape = shape , 
-                   rate = rate,
-                   log = TRUE)
-    }
-    else{
-      ll <- dgpoisshifted(x,shape,rate, t = offset,log=TRUE)}
-    return(ll)
-  }
-  log_lik <- function(param, x) {
-    sumll <- -sum(sapply(x, function(xi)
-      likelihood(param, xi)))
-    return(sumll)
-  }
-  res <- optim(
-    starting_value,
-    log_lik ,
-    x = x,
-    method = "L-BFGS-B",
-    lower = c(1, 0.001)
-  )$par
-  
-  data.frame(shape_hat = res[1], 
-             rate_hat = res[2]) 
-}
