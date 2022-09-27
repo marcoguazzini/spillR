@@ -2,7 +2,7 @@ Package: spillR
 Type: Package
 Title: Spillover compensation for mass cytometry data.
 Version: 0.1.0
-Author: Marco Guazzini  
+Author: Marco Guazzini, Alexander Reisach, Sebastian Weichwald, Christof Seiler 
 Description: Spillover DAG visualization and compensation procedure for mass cytometry data   
 License: LGPL-3
 Encoding: UTF-8
