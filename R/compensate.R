@@ -89,7 +89,7 @@ lambdas_spillr <- matrix(
   byrow = TRUE
   )
 compensated_counts <- matrix(
-  rzipois(length(lambdas_spillr), lambda = lambdas_spillr, pstr0 = p[n_iter,] ),
+  rzipois(length(lambdas_spillr), lambda = lambdas_spillr, p[n_iter,] ),
   nrow = n_cells,
   ncol = length(channel_names)
   )
