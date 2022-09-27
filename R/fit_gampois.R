@@ -24,7 +24,7 @@
 #' fit
 fit_gampois <- function(x,
                        offset = 0,
-                       starting_value = c(1,0.1,0)) {
+                       starting_value = c(1, 0.1, 0.1)) {
   
   library("matrixStats")
   
