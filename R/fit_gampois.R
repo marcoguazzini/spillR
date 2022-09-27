@@ -71,7 +71,7 @@ fit_gampois <- function(x,
     log_lik ,
     x = x,
     method = "L-BFGS-B",
-    lower = c(1, 0.001, 0) # to be fixed 
+    lower = c(0.1, 0.001, 0) # to be fixed 
   )$par
   
   data.frame(shape_hat = res[1], 
