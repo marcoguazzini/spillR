@@ -1,9 +1,26 @@
 # spillR
 
  # Algorithm for real data.
+ 
+How to use our package on real data:
+ ```{r}
+ # install and load pkg
+devtools::install_github("marcoguazzini/spillR")
+library("spillR")
 
+ # load counts data from CATALYST pkg (this is an example of counts data, one can use an available dataset of mass cytometry data)
+ counts <- spillR::extract_data()
+ 
+ # load counts from the spillover experiments
+ counts_spill <- spillR:: extract_spill_distr()
+ 
+ #load spillover matrix
+ sm <- spillR::load_spillover()
+ ```
 
+```{r}
 
+```
 
 
 
@@ -16,9 +33,6 @@
 How to use our package:
 
 ```r
-# install and load pkg
-devtools::install_github("marcoguazzini/spillR")
-library("spillR")
 
 # parameters of true expressions
 shape <- 9.0
