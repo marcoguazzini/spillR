@@ -1,4 +1,5 @@
-scatter_plot_comp_real <-  function(chs, counts_nnls,counts, y_comp_mix){
+scatter_plot_comp_real <-  function(chs,counts, y_comp_mix){
+  
   colorscale = scale_fill_gradientn(
     colors = rev(brewer.pal(9, "YlGnBu")),
     values = c(0, exp(seq(-5, 0, length.out = 100)))
@@ -8,10 +9,6 @@ scatter_plot_comp_real <-  function(chs, counts_nnls,counts, y_comp_mix){
   tb_counts_uncomp <- counts %>% as_tibble() %>% dplyr::select(all_of(chs))
   tb_counts_uncomp %<>% mutate(cell = 1:nrow(tb_counts_uncomp))
   tb_counts_uncomp %<>% mutate(comp = "with spillover")
-  # compensate using NNLS as in CATALYST::compCytof
-  tb_counts_nnls <- counts_nnls %>% as_tibble() %>% dplyr::select(all_of(chs))
-  tb_counts_nnls %<>% mutate(cell = 1:nrow(tb_counts_nnls))
-  tb_counts_nnls %<>% mutate(comp = "non-negative least squares")
   
   # generate with our method spillR::compensate
   tb_counts_polyspillr <- y_comp_mix %>% as_tibble() %>% dplyr::select(all_of(chs))
@@ -19,13 +16,11 @@ scatter_plot_comp_real <-  function(chs, counts_nnls,counts, y_comp_mix){
   tb_counts_polyspillr %<>% mutate(comp = "our method spillR")
   # merge and plot
   tb_counts_combined <- bind_rows(
-                                  tb_counts_uncomp, 
-                                  tb_counts_nnls, 
+                                  tb_counts_uncomp,  
                                   tb_counts_polyspillr)
   tb_counts_combined$comp %<>% factor(
     levels = c( 
                "with spillover", 
-               "non-negative least squares",
                "our method spillR")
   )
   
