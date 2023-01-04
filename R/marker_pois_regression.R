@@ -2,7 +2,8 @@ marker_pois_regression <-
   function(target,
            barcode_target,
            barcode_emit,
-           counts_spill) {
+           counts_spill,
+          n_degree) {
     
     tb_freq <- emit_extraction(target, barcode_target, barcode_emit, counts_spill)
     # need to make sure to use raw = TRUE
