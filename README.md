@@ -1,5 +1,18 @@
 # spillR
 
+ # Algorithm for real data.
+
+
+
+
+
+
+
+
+
+
+# Simulation with method presented on EuroBioc2022
+
 How to use our package:
 
 ```r
@@ -29,8 +42,22 @@ counts_compensated <- spillR::compensate(counts, sm)
 spillR::plot(counts, counts_compensated, channel_names)
 ```
  
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 ```r 
 # DAG representing the spillover
 # set this for better image resolution fig.width=10, fig.height=7, out.width="100%"
 spillR::spill_dag(spillover_matrix)
 ```
+
+
+
+
+
