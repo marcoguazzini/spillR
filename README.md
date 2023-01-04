@@ -3,7 +3,7 @@
  # Algorithm for real data.
  
 How to use our package on real data:
- ```{r}
+ ```r
  # install and load pkg
 devtools::install_github("marcoguazzini/spillR")
 library("spillR")
@@ -18,21 +18,25 @@ library("spillR")
  sm <- spillR::load_spillover()
  ```
 
-```{r}
+```r
 # Estimation (due to the distribution of this counts we need to cut some outliers)
 counts_comp <- spillR:: mixture_method(counts, sm, thr = 0.95, cut = TRUE)
 ```
 
-```{r}
+```r
 # visualization of the results
 # choosing two markers
 ch <- c("Nd145Di", "Nd144Di")
 
 # scatter plot
-
+spillR:: scatter_plot_comp_real(ch, counts, counts_comp)
 
 ```
 
+```r
+#histograms
+spillR::plot_comp(counts[,ch[1]], counts_comp[,[ch1]]
+```
 
 
 
