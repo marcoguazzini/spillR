@@ -34,8 +34,13 @@ spillR:: scatter_plot_comp_real(ch, counts, counts_comp)
 ```
 
 ```r
-#histograms
-spillR::plot_comp(counts[,ch[1]], counts_comp[,[ch1]]
+#checking spillover distribution for a marker
+
+spillR::plot_emit(
+
+#histogram of the compensated counts
+
+spillR::plot_comp(counts[,ch[1]], counts_comp[,ch[1]])
 ```
 
 
