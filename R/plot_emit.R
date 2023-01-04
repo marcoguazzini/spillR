@@ -1,5 +1,8 @@
-plot_emit <- function(target, barc) {
-  marker_selection <- names(smc[, target])[smc[, target] > 0]
+plot_emit <- function(target) {
+  barcode_target <- substr(target, 3, 5)
+marker_selection <- names(smc[, target])[smc[, target] > 0]
+barcodes <- sapply(marker_selection, function(marker) substr(marker, 3, 5))
+bar <- barcodes[barcodes != barcode_target]
   emit_spill <-
     sapply(marker_selection, function(marker)
       substr(marker, 3, 5))
