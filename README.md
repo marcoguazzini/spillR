@@ -20,6 +20,7 @@ library("spillR")
 
 ```r
 # Estimation (due to the distribution of this counts we need to cut some outliers)
+# degrees of freedom is set to 4 for the polynomial regression
 counts_comp <- spillR:: mixture_method(counts, sm, thr = 0.95, cut = TRUE)
 ```
 
