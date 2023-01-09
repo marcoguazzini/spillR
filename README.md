@@ -8,7 +8,8 @@ How to use our package on real data:
 devtools::install_github("marcoguazzini/spillR")
 library("spillR")
 
- # load counts data from CATALYST pkg (this is an example of counts data, one can use an available dataset of mass cytometry data)
+ # load counts data from CATALYST pkg (this is an example of counts data, one can use an 
+ available dataset of mass cytometry data)
  counts <- spillR::extract_data()
  
  # load counts from the spillover experiments
