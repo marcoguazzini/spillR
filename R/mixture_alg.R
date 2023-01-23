@@ -10,7 +10,7 @@ extr_bars <- function(markers, barcode_target){
 bar <- sapply(1:length(barcode_targets) , function(i)  list(extr_bars(marker_selections[[i]], barcode_targets[i] )))
   tb_spills_coeff <- lapply(bar, function(b) marker_pois_regression(target = target, barcode_target = barcode_target, barcode_emit=b, counts_spill = counts_spill, n_degree))
   tb_freq <- extract_freq(target, counts,threshold = thr,  cut = cut)
-  fit_mix <- fit_mixture(tb_freq, tb_spills_coeff, target,barcode_target,bar,counts_spill, n_degree)
+  fit_mix <- fit_mixture(tb_freq, tb_spills_coeff, target,barcode_target,bar,counts_spill, n_degree, smc)
  counts_poly_mix <- compensation(target, fit_mix, tb_spills_coeff,x)
 counts_poly_mix <- data.frame(counts[,1:4],counts_poly_mix)
 colnames(counts_poly_mix ) <- channel_names
