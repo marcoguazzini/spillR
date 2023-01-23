@@ -22,7 +22,8 @@ library("spillR")
 ```r
 # Estimation (due to the distribution of this counts we need to cut some outliers)
 # degrees of freedom is set to 4 for the polynomial regression
-counts_comp <- spillR:: mixture_alg(counts, sm, thr = 0.95, cut = TRUE)
+n_degree <- 4
+counts_comp <- spillR:: mixture_alg(counts, sm, n_degree = 4, thr = 0.95, cut = TRUE)
 ```
 
 ```r
