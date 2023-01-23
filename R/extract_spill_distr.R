@@ -1,7 +1,12 @@
 extract_spill_distr <- function(){
-  data(mp_cells, package = "CATALYST")
-  sce <- prepData(mp_cells)
-  channel_names <- as.matrix(rowData(sce))[,"channel_name"]
+data(ss_exp, package = "CATALYST")
+# specify mass channels stained for & debarcode
+bc_ms <- c(139, 141:156, 158:176)
+sce_spill <- prepData(ss_exp)
+sce_spill <- assignPrelim(sce_spill, bc_ms, verbose = FALSE)
+sce_spill <- applyCutoffs(estCutoffs(sce_spill))
+# compute & extract spillover matrix
+sce_spill <- computeSpillmat(sce_spill)
   counts_spill <- t(assay(sce_spill, "counts"))
   counts_spill <- floor(counts_spill)
   channel_names_spill <- as.matrix(rowData(sce_spill))[,"channel_name"]
