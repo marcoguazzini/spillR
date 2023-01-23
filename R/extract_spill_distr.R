@@ -1,4 +1,7 @@
 extract_spill_distr <- function(){
+  data(mp_cells, package = "CATALYST")
+  sce <- prepData(mp_cells)
+  channel_names <- as.matrix(rowData(sce))[,"channel_name"]
   counts_spill <- t(assay(sce_spill, "counts"))
   counts_spill <- floor(counts_spill)
   channel_names_spill <- as.matrix(rowData(sce_spill))[,"channel_name"]
