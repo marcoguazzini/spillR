@@ -5,7 +5,8 @@ fit_mixture <-
            barcode_target,
            bar,
            counts_spill,
-          n_degree,smc) {
+          n_degree,
+           smc) {
     offset <-
       lapply(1:length(bar), function(i)
         offset_comp(
