@@ -2,7 +2,8 @@ emit_extraction <-
   function(target,
            barcode_target,
            barcode_emit,
-           counts_spill) {
+           counts_spill,
+          smc) {
     marker_selection <- names(smc[, target])[smc[, target] > 0]
     emit_spill <-
       sapply(marker_selection, function(marker)
