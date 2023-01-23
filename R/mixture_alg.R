@@ -1,4 +1,4 @@
-mixture_alg <- function(counts, smc, thr = 0.995, c = FALSE, n_degree = 4){
+mixture_alg <- function(counts, smc, t = 0.995, cut = FALSE, n_degree = 4){
 channel_names <- colnames(counts) 
 targets <- unname(channel_names[-(1:4)])
 barcode_targets <- unname(sapply(targets , function(t) substr(t, 3,5)))
@@ -8,9 +8,9 @@ extr_bars <- function(markers, barcode_target){
   p[p != barcode_target]
 }
 bar <- sapply(1:length(barcode_targets) , function(i) list(extr_bars(marker_selections[[i]], barcode_targets[i] )))
-mixture <- function(target, x, barcode_target, marker_selection, bar, thr = thr, cut = cut, n_degree = 4){
+mixture <- function(target, x, barcode_target, marker_selection, bar, thr = t, cut = cut, n_degree = 4){
   tb_spills_coeff <- lapply(bar, function(b) marker_pois_regression(target = target, barcode_target = barcode_target, barcode_emit=b, counts_spill = counts_spill,n_degree = n_degree, smc = smc))
-  tb_freq <- extract_freq(target, counts, threshold = thr,  cut = c)
+  tb_freq <- extract_freq(target, counts, threshold = t,  cut = cut)
   fit_mix <- fit_mixture(tb_freq, tb_spills_coeff, target,barcode_target,bar,counts_spill, n_degree, smc)
   compensation(target, fit_mix, tb_spills_coeff,x)
 }
