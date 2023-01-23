@@ -8,7 +8,7 @@ bar <- barcodes[barcodes != barcode_target]
       substr(marker, 3, 5))
   
   y <- counts_spill %>%
-    select_at(c(barc, "barcode")) %>%
+    select_at(c(bar, "barcode")) %>%
     filter(barcode %in% emit_spill)
   colnames(y)[1] <- "x"
   # Plotting the various spillover distribution
