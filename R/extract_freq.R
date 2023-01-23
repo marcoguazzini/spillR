@@ -1,4 +1,4 @@
-extract_freq <- function(target, counts, threshold = 0.995, cut = FALSE){
+extract_freq <- function(target, counts, threshold , cut = FALSE){
   if(!cut){
 x <- counts[,target]
 tb_freq <- tibble(x) %>% group_by(x) %>% tally()
