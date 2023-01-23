@@ -5,7 +5,7 @@ fit_mixture <-
            barcode_target,
            bar,
            counts_spill,
-          n_degree) {
+          n_degree,smc) {
     offset <-
       lapply(1:length(bar), function(i)
         offset_comp(
@@ -14,7 +14,8 @@ fit_mixture <-
           target,
           barcode_target,
           bar[i],
-          counts_spill
+          counts_spill,
+          smc
         ))
     model <- list(FLXglm(n ~ poly(x, degree = n_degree, raw = TRUE), family = "poisson"))
     model <- append(model,
