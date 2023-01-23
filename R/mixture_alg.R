@@ -14,7 +14,7 @@ mixture <- function(target, x, barcode_target, marker_selection, bar, thr = thr,
   fit_mix <- fit_mixture(tb_freq, tb_spills_coeff, target,barcode_target,bar,counts_spill, n_degree = n_degree, smc)
   compensation(target, fit_mix, tb_spills_coeff,x)
 }
-counts_poly_mix <-data.frame(lapply(1:length(barcode_targets), function(i) mixture_method(targets[i], counts[,targets[i]],barcode_targets[i],marker_selections[[i]], bar[[i]])))
+counts_poly_mix <-data.frame(lapply(1:length(barcode_targets), function(i) mixture(targets[i], counts[,targets[i]],barcode_targets[i],marker_selections[[i]], bar[[i]])))
 counts_poly_mix <- data.frame(counts[,1:4],counts_poly_mix)
 colnames(counts_poly_mix ) <- channel_names
 counts_poly_mix 
