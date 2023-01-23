@@ -7,7 +7,7 @@ tb_freq
 }
   else{
     x <- counts[,target]
-    x <- outlier_cut(x, p = threshold )
+    x <- outlier_cut(x, threshold )
     tb_freq <- tibble(x) %>% group_by(x) %>% tally()
     tb_freq$x %<>% as.integer()
     tb_freq
