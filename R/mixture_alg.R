@@ -1,5 +1,5 @@
 mixture_alg <- function(counts, smc, thr = 0.995, cut = FALSE, n_degree = 4){
-colnames(counts) -> channel_names
+channel_names <- colnames(counts) 
 targets <- unname(channel_names[-(1:4)])
 barcode_targets <- unname(sapply(targets , function(t) substr(t, 3,5)))
 marker_selections <- sapply(targets, function(t) list(names(smc[, t])[smc[, t] > 0]))
