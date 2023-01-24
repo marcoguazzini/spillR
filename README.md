@@ -43,7 +43,7 @@ spillR::plot_emit(ch[1])
 
 #histogram of the compensated counts
 
-spillR::plot_comp(counts[,ch[1]], counts_comp[,ch[1]])
+spillR::plot_compensation(counts[,ch[1]], counts_comp[,ch[1]])
 ```
 
 
