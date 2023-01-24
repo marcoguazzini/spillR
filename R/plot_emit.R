@@ -8,11 +8,11 @@ bar <- barcodes[barcodes != barcode_target]
       substr(marker, 3, 5))
   
   y <- counts_spill %>%
-    select_at(c(bar, "barcode")) %>%
+    select_at(c(barcode_target, "barcode")) %>%
     filter(barcode %in% emit_spill)
   colnames(y)[1] <- "x"
   # Plotting the various spillover distribution
-  ggplot(y %>% filter(barcode != barc), aes(x)) +
+  ggplot(y %>% filter(barcode != barcode_target), aes(x)) +
     geom_histogram(bins = 50) +
     facet_wrap( ~ barcode)
 }
