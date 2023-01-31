@@ -1,5 +1,4 @@
 mixture_alg <- function(counts, smc, n_degree, t = 0.995, c = FALSE){
- counts_spill <- extract_spill_distr()
 channel_names <- colnames(counts) 
 targets <- unname(channel_names[-(1:4)])
 barcode_targets <- unname(sapply(targets , function(t) substr(t, 3,5)))
