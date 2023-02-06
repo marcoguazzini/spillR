@@ -8,6 +8,7 @@ emit_extraction <-
     emit_spill <-
       sapply(marker_selection, function(marker)
         substr(marker, 3, 5))
+ counts_spill <- load_counts_spill()
     y <- counts_spill %>%
       select_at(c(barcode_target, "barcode")) %>%
       filter(barcode %in% emit_spill) %>% filter(barcode != barcode_target)
