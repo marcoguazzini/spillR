@@ -8,6 +8,7 @@ extr_bars <- function(markers, barcode_target){
   p[p != barcode_target]
 }
 bar <- sapply(1:length(barcode_targets) , function(i) list(extr_bars(marker_selections[[i]], barcode_targets[i] )))
+counts_spill <- load_counts_spill()
 mixture <- function(target, x, barcode_target, marker_selection, bar, thr = t, cut = c, n = n_degree){
   tb_spills_coeff <- lapply(bar, function(b) marker_pois_regression(target = target, barcode_target = barcode_target, barcode_emit=b, counts_spill = counts_spill, n_degree = n, smc = smc))
   tb_freq <- extract_freq(target, counts, threshold = t,  cut = c)
