@@ -1,4 +1,4 @@
-plot_emit <- function(target) {
+plot_emit <- function(target,smc) {
   barcode_target <- substr(target, 3, 5)
 marker_selection <- names(smc[, target])[smc[, target] > 0]
 barcodes <- sapply(marker_selection, function(marker) substr(marker, 3, 5))
