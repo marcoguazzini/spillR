@@ -36,7 +36,7 @@ compensation <- function(target, fit_mix, tb_spills_coeff, y) {
     tb_hat %<>% mutate(spill_prob_norm = spill_prob / sum(tb_hat$spill_prob))
     
   }
-  tb_prob <- lapply(y, function(x)
+  tb_prob <- lapply(unique(y), function(x)
     calc_spill_prob(x = x, tb_sel = tb_sel)) %>%
     bind_rows()
   
