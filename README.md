@@ -64,14 +64,14 @@ n_cells <- 1000
 channel_names <- c("Nd143Di","Nd148Di")
 
 # load data from CATALYST pkg
-sm <- spillR::load_spillover()
+smc <- spillR::load_spillover()
 
 
 # generate counts with spillover
-counts <- spillR::prepare_data(sm, shape, rate, n_cells)
+counts <- spillR::prepare_data(smc, shape, rate, n_cells)
 
 # add spillover
-counts_compensated <- spillR::compensate(counts, sm)
+counts_compensated <- spillR::compensate(counts, smc)
 
 # plot comparison
 spillR::plot(counts, counts_compensated, channel_names)
