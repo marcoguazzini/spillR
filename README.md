@@ -16,14 +16,14 @@ library("spillR")
  counts_spill <- spillR:: extract_spill_distr()
  
  #load spillover matrix
- sm <- spillR::load_spillover()
+ smc <- spillR::load_spillover()
  ```
 
 ```r
 # Estimation (due to the distribution of this counts we need to cut some outliers)
 # degrees of freedom is set to 4 for the polynomial regression
 n_degree <- 4
-counts_comp <- spillR:: mixture_alg(counts, sm, n_degree = 4, t = 0.95, c = TRUE)
+counts_comp <- spillR:: mixture_alg(counts, smc, n_degree = 4, t = 0.95, c = TRUE)
 ```
 
 ```r
