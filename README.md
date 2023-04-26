@@ -16,14 +16,14 @@ library("spillR")
  counts_spill <- spillR:: extract_spill_distr()
  
  #load spillover matrix
- sm <- spillR::load_spillover()
+ smc <- spillR::load_spillover()
  ```
 
 ```r
 # Estimation (due to the distribution of this counts we need to cut some outliers)
 # degrees of freedom is set to 4 for the polynomial regression
 n_degree <- 4
-counts_comp <- spillR:: mixture_alg(counts, sm, n_degree = 4, thr = 0.95, cut = TRUE)
+counts_comp <- spillR:: mixture_alg(counts, smc, n_degree = 4, t = 0.95, c = TRUE)
 ```
 
 ```r
@@ -64,14 +64,14 @@ n_cells <- 1000
 channel_names <- c("Nd143Di","Nd148Di")
 
 # load data from CATALYST pkg
-sm <- spillR::load_spillover()
+smc <- spillR::load_spillover()
 
 
 # generate counts with spillover
-counts <- spillR::prepare_data(sm, shape, rate, n_cells)
+counts <- spillR::prepare_data(smc, shape, rate, n_cells)
 
 # add spillover
-counts_compensated <- spillR::compensate(counts, sm)
+counts_compensated <- spillR::compensate(counts, smc)
 
 # plot comparison
 spillR::plot(counts, counts_compensated, channel_names)
