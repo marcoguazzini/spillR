@@ -27,7 +27,7 @@ library(CATALYST)
  
  # load counts from the spillover experiments
  beads_exp <- spillR:: load_beads_data()
- counts_beads <- beads_exp[[1]]
+ counts_bead <- beads_exp[[1]]
  sm <- beads_exp[[2]]
  
  ```
