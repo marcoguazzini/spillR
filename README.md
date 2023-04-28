@@ -10,76 +10,42 @@ library("spillR")
 
  # load counts data from CATALYST pkg (this is an example of counts data, one can use an 
  available dataset of mass cytometry data)
- counts <- spillR::extract_data()
+ counts_real <- spillR::load_real_data()
  
  # load counts from the spillover experiments
- counts_spill <- spillR:: extract_spill_distr()
+ beads_exp <- spillR:: load_beads_data()
+ counts_beads <- beads_exp[[1]]
+ sm <- beads_exp[[2]]
  
- #load spillover matrix
- smc <- spillR::load_spillover()
  ```
 
 ```r
-# Estimation (due to the distribution of this counts we need to cut some outliers)
-# degrees of freedom is set to 4 for the polynomial regression
-n_degree <- 4
-counts_comp <- spillR:: mixture_alg(counts, smc, n_degree = 4, t = 0.95, c = TRUE)
+# Compensation
+target_marker <- rownames(sm)
+fit<-
+    lapply(target_marker, function(marker)
+        EM_mixture(
+          marker,
+          counts_nb,
+          counts_bead,
+          n_iter = 20,
+          sm
+        )
+      )
+  counts_comp <- fit[[1]]
 ```
 
 ```r
 # visualization of the results
-# choosing two markers
-ch <- c("Nd145Di", "Nd144Di")
-
-# scatter plot
-spillR:: scatter_plot_comp_real(ch, counts, counts_comp)
+# choosing a marker
+marker <- "Nd145Di"
+plot_compensation(fit[[counts_comp[,marker], 
+                              marker 
+                              )
 
 ```
 
-```r
-#checking spillover distribution for a marker
 
-spillR::plot_emit(ch[1],smc)
-
-#histogram of the compensated counts
-
-spillR::plot_compensation(counts[,ch[1]], counts_comp[,ch[1]])
-```
-
-
-
-
-# Simulation with method presented on EuroBioc2022
-
-How to use our package:
-
-```r
-
-# parameters of true expressions
-shape <- 9.0
-rate <- 1.0
-n_cells <- 1000
-
-# channels for comparison 
-channel_names <- c("Nd143Di","Nd148Di")
-
-# load data from CATALYST pkg
-smc <- spillR::load_spillover()
-
-
-# generate counts with spillover
-counts <- spillR::prepare_data(smc, shape, rate, n_cells)
-
-# add spillover
-counts_compensated <- spillR::compensate(counts, smc)
-
-# plot comparison
-spillR::plot(counts, counts_compensated, channel_names)
-```
- 
-
- 
- 
  
  
  
@@ -89,7 +55,7 @@ spillR::plot(counts, counts_compensated, channel_names)
 ```r 
 # DAG representing the spillover
 # set this for better image resolution fig.width=10, fig.height=7, out.width="100%"
-spillR::spill_dag(spillover_matrix)
+spillR::spill_dag(spillR::load_spillover())
 ```
 
 
