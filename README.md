@@ -8,6 +8,19 @@ How to use our package on real data:
 devtools::install_github("marcoguazzini/spillR")
 library("spillR")
 
+# Libraries
+library(spillR)
+library(flowCore)
+library(ggplot2)
+library(tibble)
+library(dplyr)
+library(RColorBrewer)
+library(magrittr)
+library(tidyr)
+library(CATALYST)
+```
+
+```{r}
  # load counts data from CATALYST pkg (this is an example of counts data, one can use an 
  available dataset of mass cytometry data)
  counts_real <- spillR::load_real_data()
