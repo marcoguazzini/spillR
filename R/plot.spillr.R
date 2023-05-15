@@ -28,7 +28,7 @@ plot.spillr <- function(x, ...) {
   
   if(!is(x, "spillr"))
     stop("Input needs to be a spillr object computed by compensate function.")
-
+  tfm <- function(x) asinh(x/5)
   tb_bead <- x$tb_bead
   tb_compensate <- x$tb_compensate
   tb_spill_prob <- x$tb_spill_prob
