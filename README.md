@@ -3,64 +3,27 @@
  # Algorithm for real data.
  
 How to use our package on real data:
- ```r
- # install and load pkg
-devtools::install_github("marcoguazzini/spillR")
-library("spillR")
+  
+ ```{r spillr-vignette, echo = FALSE, warning = FALSE, message = FALSE}
+# constants
+bc_key <- c(139, 141:156, 158:176)
 
-# Libraries
-library(spillR)
-library(flowCore)
-library(ggplot2)
-library(tibble)
-library(dplyr)
-library(RColorBrewer)
-library(magrittr)
-library(tidyr)
-library(CATALYST)
+# --------- experiment with beads ---------
+
+sce_bead <- prepData(ss_exp)
+sce_bead <- assignPrelim(sce_bead, bc_key, verbose = FALSE)
+sce_bead <- applyCutoffs(estCutoffs(sce_bead))
+sce_bead <- computeSpillmat(sce_bead)
+
+# --------- experiment with real cells ---------
+
+data(mp_cells, package = "CATALYST")
+sce <- prepData(mp_cells)
+
+# --------- call compensate from spillR compCytof package ---------
+sce <- spillR::compCytof(sce, sce_bead, overwrite = FALSE) 
 ```
 
-```{r}
- # load counts data from CATALYST pkg (this is an example of counts data, one can use an 
- available dataset of mass cytometry data)
- counts_real <- spillR::load_real_data()
- 
- # load counts from the spillover experiments
- beads_exp <- spillR:: load_beads_data()
- counts_bead <- beads_exp[[1]]
- sm <- beads_exp[[2]]
- 
- ```
-
-```r
-# Compensation
-target_marker <- rownames(sm)
-fit<-
-    lapply(target_marker, function(marker)
-        EM_mixture(
-          marker,
-          counts_nb,
-          counts_bead,
-          n_iter = 20,
-          sm
-        )
-      )
-  counts_comp <- fit[[1]]
-```
-
-```r
-# visualization of the results
-# choosing a marker
-marker <- "Nd145Di"
-plot_compensation(fit[[counts_comp[,marker], 
-                              marker 
-                              )
-
-```
-
-
- 
- 
  
  
  
