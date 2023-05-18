@@ -22,6 +22,13 @@ sce <- prepData(mp_cells)
 
 # --------- call compensate from spillR compCytof package ---------
 sce <- spillR::compCytof(sce, sce_bead, overwrite = FALSE) 
+
+# --------- scatter plot from CATALYST ---------
+as <- c("exprs", "compexprs")
+chs <- c( "Yb171Di", "Yb173Di")
+ps <- lapply(as, function(a) 
+    plotScatter(sce, chs, assay = a))
+plot_grid(plotlist = ps, nrow = 1)
 ```
 
  
