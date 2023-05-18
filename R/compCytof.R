@@ -47,6 +47,7 @@ compCytof <- function(sce, sce_bead, overwrite = FALSE){
   # --------- iterator over markers ---------
   
   # constants
+  tfm <- function(x) asinh(x/5)
   marker_to_code <- function(marker) as.integer(substr(marker, 3, 5)) # TODO: this won't work in general
   
   fit_list <- lapply(rownames(sm), 
@@ -103,8 +104,14 @@ compCytof <- function(sce, sce_bead, overwrite = FALSE){
     }
   }
   colnames(data)<- channel_names
+  
+  # save compensated counts
   c <- ifelse(overwrite, assay, "compcounts")
   assay(sce, c, FALSE) <- t(data)
+  
+  # save compensated transformed counts
+  c <- ifelse(overwrite, "exprs", "compexprs")
+  assay(sce, c, FALSE) <- t(tfm(data))
   return(sce)
 
 }
