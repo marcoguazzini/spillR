@@ -1,12 +1,10 @@
-# spillR
+# spillR: vignette
 
- # Algorithm for real data.
- 
-How to use our package on real data:
-  
- ```{r spillr-vignette, echo = FALSE, warning = FALSE, message = FALSE}
-# constants
+# Algorithm for real data.
+
+ # constants
 bc_key <- c(139, 141:156, 158:176)
+
 
 # --------- experiment with beads ---------
 
@@ -20,19 +18,23 @@ sce_bead <- computeSpillmat(sce_bead)
 data(mp_cells, package = "CATALYST")
 sce <- prepData(mp_cells)
 
-# --------- call compensate from spillR compCytof package ---------
-sce <- spillR::compCytof(sce, sce_bead, overwrite = FALSE) 
+# --------- table for mapping markers and barcode ---------
+marker_to_barc <- 
+  rowData(sce_bead)[,c("channel_name", "is_bc")] %>%
+  as_tibble %>%
+  dplyr::filter(is_bc == TRUE) %>%
+  mutate(barcode = bc_key) %>%
+  select(marker = channel_name, barcode)
 
-# --------- scatter plot from CATALYST ---------
-as <- c("exprs", "compexprs")
-chs <- c( "Yb171Di", "Yb173Di")
-ps <- lapply(as, function(a) 
-    plotScatter(sce, chs, assay = a))
-plot_grid(plotlist = ps, nrow = 1)
-```
+# --------- call compensate from compCytof package ---------
+sce_spillr <- compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 
- 
- 
+# --------- 2d histogram from spillR ---------
+ as <- c("counts", "exprs", "compcounts", "compexprs")
+ chs <- c( "Yb171Di", "Yb173Di")
+ ps <- lapply(as, function(a) 
+     plotScatter(sce_spillr, chs, assay = a))
+ plot_grid(plotlist = ps, nrow = 2)
  
  
 ```r 
