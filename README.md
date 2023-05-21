@@ -2,7 +2,7 @@
 
 # Algorithm for real data.
 
-
+```r
 # --------- experiment with beads ---------
 bc_key <- c(139, 141:156, 158:176)
 sce_bead <- prepData(ss_exp)
@@ -31,7 +31,7 @@ sce_spillr <- compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
  ps <- lapply(as, function(a) 
      plotScatter(sce_spillr, chs, assay = a))
  plot_grid(plotlist = ps, nrow = 2)
- 
+ ```
  
 ```r 
 # DAG representing the spillover
