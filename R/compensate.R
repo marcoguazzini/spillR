@@ -93,10 +93,10 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   for(marker in spillover_markers) {
     
     tb <- tb_bead %>% 
-      filter(barcode == marker) %>% 
+      dplyr::filter(barcode == marker) %>% 
       pull(all_of(target_marker)) %>% 
       denoise(y_min = y_min, y_max = y_max) %>% 
-      select(y, pmf)
+      dplyr::select(y, pmf)
     names(tb) <- c("y", marker)
     tb_beads_pmf %<>% left_join(tb, by = "y")
     
@@ -113,7 +113,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   tb_real_pmf <- tb_real %>% 
     pull(all_of(target_marker)) %>% 
     denoise(y_min = y_min, y_max = y_max) %>% 
-    select(y, pmf)
+    dplyr::select(y, pmf)
   names(tb_real_pmf) <- c("y", target_marker)
   
   # join beads and real
@@ -127,15 +127,15 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   
   for(i in 1:n_iter) {
     # remove counts without any signal
-    total <- rowSums(select(tb_pmf, all_of(all_markers)))
+    total <- rowSums(dplyr::select(tb_pmf, all_of(all_markers)))
     tb_pmf %<>% mutate(total = total)
-    tb_pmf %<>% filter(total > 0)
-    tb_pmf %<>% select(-total)
+    tb_pmf %<>% dplyr::filter(total > 0)
+    tb_pmf %<>% dplyr::select(-total)
     
     # E-step
     
     # membership probabilities
-    M <- tb_pmf %>% select(all_of(all_markers)) %>% as.matrix()
+    M <- tb_pmf %>% dplyr::select(all_of(all_markers)) %>% as.matrix()
     PI <- matrix(rep(pi, each = nrow(M)), ncol = ncol(M))
     post_M <- PI * M
     post_M <- post_M/rowSums(post_M)
@@ -157,16 +157,16 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
       
       ys <- tb_pmf[class == target_marker, ] %>% pull(y)
       tb_real_pmf <- tb_real %>% 
-        filter(.data[[target_marker]] %in% ys) %>%
+        dplyr::filter(.data[[target_marker]] %in% ys) %>%
         pull(all_of(target_marker)) %>% 
         denoise(y_min = y_min, y_max = y_max) %>% 
-        select(y, pmf)
+        dplyr::select(y, pmf)
       
     } else {
       
       # if no signal, then use uniform distribution  
       tb_real_pmf <- tb_beads_pmf %>% 
-        select(y) %>% 
+        dplyr::select(y) %>% 
         mutate(pmf = 1/nrow(tb_beads_pmf))
       
     }
@@ -182,12 +182,12 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   # --------- spillover probability curve ---------
   
   # calculate posterior spillover probability for each cell
-  M <- tb_pmf %>% select(all_of(all_markers)) %>% as.matrix()
+  M <- tb_pmf %>% dplyr::select(all_of(all_markers)) %>% as.matrix()
   PI <- matrix(rep(pi, each = nrow(M)), ncol = ncol(M))
   post_M <- PI * M
   post_M <- post_M/rowSums(post_M)
   spill_prob <- 1-post_M[,target_marker]
-  tb_spill_prob <- select(tb_pmf, y) %>% mutate(spill_prob = spill_prob)
+  tb_spill_prob <- dplyr::select(tb_pmf, y) %>% mutate(spill_prob = spill_prob)
   tb_spill_prob %<>% mutate(spill_prob = if_else(is.na(spill_prob), 0, spill_prob))
   names(tb_spill_prob) <- c(target_marker, "spill_prob")
   
@@ -199,7 +199,8 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
                    size = 1, 
                    prob = tb_compensate$spill_prob)
   )
-  tb_compensate %<>% mutate(corrected = (1-spill)*.data[[target_marker]])
+  tb_compensate %<>% mutate(corrected = ifelse(spill == 1, NA, .data[[target_marker]]))
+  
   names(tb_compensate)[1] = "uncorrected"
   
   # postprocess spillover probabilities

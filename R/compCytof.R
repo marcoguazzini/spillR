@@ -9,6 +9,7 @@
 #'
 #' @param sce Single Cell Experiment for the real cells
 #' @param sce_bead Single Cell Experiment for the bead experiment
+#' @param marker_to_barc Table that maps the marker to the barcode in the beads experiment
 #'
 #' @return A list of class \code{spillr} containing
 #'   \item{tb_compensate}{corrected real cells}
@@ -19,9 +20,16 @@
 #' sce <- prepData(mp_cells)    # real cells
 #' sce_bead <- prepData(ss_exp) # beads
 #' sce <- spillR::compCytof(sce, sce_bead, overwrite = FALSE)
-compCytof <- function(sce, sce_bead, overwrite = FALSE){
+compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
+  
+  if(!("marker" %in% colnames(marker_to_barc)))
+    stop("marker_to_barc needs to have column marker")
+  if(!("barcode" %in% colnames(marker_to_barc)))
+    stop("marker_to_barc needs to have column barcode")
   
   # modified from methods.Rmd
+  
+  tfm <- function(x) asinh(x/5)
   
   # --------- experiment with beads ---------
   
@@ -48,20 +56,23 @@ compCytof <- function(sce, sce_bead, overwrite = FALSE){
   
   # constants
   tfm <- function(x) asinh(x/5)
-  marker_to_code <- function(marker) as.integer(substr(marker, 3, 5)) # TODO: this won't work in general
+  
   
   fit_list <- lapply(rownames(sm), 
     function(target_marker) {
       
       spillover_markers <- names(which(sm[,target_marker] > 0))
-      spillover_barcodes <- marker_to_code(spillover_markers)
+      spillover_barcodes <- marker_to_barc %>% 
+        dplyr::filter(marker %in% spillover_markers) %>%
+        dplyr::select("barcode")%>%
+        pull()
       tb_bead <- counts_bead %>% 
-        filter(barcode %in% spillover_barcodes) %>% 
-        select(all_of(c(target_marker, "barcode"))) %>% 
+        dplyr::filter(barcode %in% spillover_barcodes) %>% 
+        dplyr::select(all_of(c(target_marker, "barcode"))) %>% 
         mutate(type = "beads")
       
       tb_real <- counts_real %>% 
-        select(all_of(target_marker)) %>%
+        dplyr::select(all_of(target_marker)) %>%
         mutate(barcode = "none") %>%
         mutate(type = "real cells")
       
@@ -78,19 +89,16 @@ compCytof <- function(sce, sce_bead, overwrite = FALSE){
     )
   
   names(fit_list) <- rownames(sm)
-  fit_list 
+  
   # saving the compensated data in a dataframe
   # adding the column for the markers not present in the beads experiment
   # in the beads experiment they do not attached three markers "Ba138Di", "Ce140Di", "Gd157Di"
-  # in general we can check the key barcode attached on the beads experiment (bc_key)
-  bc_key <- names(sce_bead@metadata[["bc_key"]])
-  bc_real <- unlist(lapply(channel_names, function(channel) marker_to_code(channel)))
-  bc_diff <- setdiff(bc_real,bc_key)
-  channels_out <- rep(NA,length(bc_diff))
-  for(i in 1:length(bc_diff)){
-    c <- which(bc_real == bc_diff[i])
-    channels_out[i]<- channel_names[c]
-  }
+  # in general we can check the key barcode attached on the beads experiment
+  # used channel in bead experiments
+  used_channel <- sce_bead@rowRanges@elementMetadata@listData[["is_bc"]]
+  c <- which(used_channel == FALSE)
+  channels_out<- channel_names[c]
+
   # with the key we can check whether the 
   data <- matrix(NA, nrow = nrow(counts_real), ncol = length(channel_names))
   data <- data.frame(data)
@@ -98,20 +106,21 @@ compCytof <- function(sce, sce_bead, overwrite = FALSE){
     if(channel_names[i] %in% channels_out){
       data[,i] <- counts_real[,channel_names[i]]
     }
-    else
-    {
+    else {
       data[,i] <- unlist(fit_list[[channel_names[i]]]$tb_compensate[,"corrected"])
     }
   }
+
   colnames(data)<- channel_names
   
   # save compensated counts
-  c <- ifelse(overwrite, assay, "compcounts")
+  c <- ifelse(overwrite, "counts", "compcounts")
   assay(sce, c, FALSE) <- t(data)
   
   # save compensated transformed counts
   c <- ifelse(overwrite, "exprs", "compexprs")
   assay(sce, c, FALSE) <- t(tfm(data))
-  return(sce)
 
+  return(sce)
+  
 }
