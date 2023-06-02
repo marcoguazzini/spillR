@@ -2,14 +2,10 @@ Package: spillR
 Type: Package
 Title: Spillover compensation for mass cytometry data.
 Version: 0.1.0
-Authors@R: c(
-person("Marco", "Guazzini", "marcoguazzini97@outlook.it", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID")),
-person("Alexander", "Reisach" , "Alexander.reisach@gmail.com", role = "aut",
-           comment = c(ORCID = "YOUR-ORCID-ID")), 
-person("Sebastian", "Weichwald", "s.weichwald@math.ku.dk", role = "aut",
-           comment = c(ORCID = "YOUR-ORCID-ID")),
-person("Christof", "Seiler", "christof.seiler@maastrichtuniversity.nl", role = "aut",
+Authors@R: c( person("Marco", "Guazzini", "marcoguazzini97@outlook.it", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID")), person("Alexander", "Reisach" , "Alexander.reisach@gmail.com", role = "aut",
+           comment = c(ORCID = "YOUR-ORCID-ID")), person("Sebastian", "Weichwald", "s.weichwald@math.ku.dk", role = "aut",
+           comment = c(ORCID = "YOUR-ORCID-ID")), person("Christof", "Seiler", "christof.seiler@maastrichtuniversity.nl", role = "aut",
            comment = c(ORCID = "YOUR-ORCID-ID")))
 Description: Model-based algorithm to compensate for spillover in mass cytometry data  
 License: LGPL-3
