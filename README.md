@@ -1,6 +1,5 @@
 # spillR: vignette
 
-# Algorithm for real data.
 
 ```r
 # --------- experiment with beads ---------
