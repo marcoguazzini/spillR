@@ -32,7 +32,7 @@ Compute spillover probability and correct for spillover
 set.seed(23)
 tb_real <- generate_real()
 tb_bead <- generate_bead()
-target_marker <- "A"
-spillover_marker <- "B"
-spillR::compensate(tb_real, tb_bead, "A", "B")
+target_marker <- "Y"
+spillover_marker <- "Z"
+spillR::compensate(tb_real, tb_bead, target_marker, spillover_marker)
 }

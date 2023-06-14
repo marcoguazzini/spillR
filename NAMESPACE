@@ -1,3 +1,2 @@
-
-importFrom("stats", "binomial", "coef", "glm", "rbinom")
+importFrom("stats", "binomial", "coef", "glm", "rbinom", "rpois")
 exportPattern("^[[:alpha:]]+")
