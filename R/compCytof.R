@@ -10,6 +10,7 @@
 #' @param sce Single Cell Experiment for the real cells
 #' @param sce_bead Single Cell Experiment for the bead experiment
 #' @param marker_to_barc Table that maps the marker to the barcode in the beads experiment
+#' @param overwrite logical; if TRUE data are overwritten if FALSE data are saved in new columns
 #'
 #' @return A list of class \code{spillr} containing
 #'   \item{tb_compensate}{corrected real cells}

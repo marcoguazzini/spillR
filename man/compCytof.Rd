@@ -12,6 +12,12 @@ compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 \item{sce_bead}{Single Cell Experiment for the bead experiment}
 
 \item{marker_to_barc}{Table that maps the marker to the barcode in the beads experiment}
+
+\item{overwrite}{logical; should the specified \code{assay} slot 
+(and \code{exprs}, when \code{transform = TRUE}) be overwritten 
+with the compensated data? If \code{FALSE}, compensated counts 
+(and expressions, if \code{transform = TRUE}) will be stored in 
+assay(s) \code{compcounts/exprs}, respectively.}
 }
 \value{
 A list of class \code{spillr} containing
