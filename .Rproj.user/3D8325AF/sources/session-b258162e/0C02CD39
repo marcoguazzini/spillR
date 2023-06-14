@@ -1,0 +1,28 @@
+{
+    "id": "0C02CD39",
+    "path": "~/Desktop/tirial pkg.Rmd",
+    "project_path": null,
+    "type": "r_markdown",
+    "hash": "1955545425",
+    "contents": "",
+    "dirty": false,
+    "created": 1686741958893.0,
+    "source_on_save": false,
+    "relative_order": 3,
+    "properties": {
+        "tempName": "Untitled1",
+        "chunk_output_type": "inline",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "12,16",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1686743137,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1686743137522,
+    "read_only": false,
+    "read_only_alternatives": []
+}

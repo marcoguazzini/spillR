@@ -1,2 +1,3 @@
+
 importFrom("stats", "binomial", "coef", "glm", "rbinom")
 exportPattern("^[[:alpha:]]+")

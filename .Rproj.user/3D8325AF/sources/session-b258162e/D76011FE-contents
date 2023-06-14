@@ -1,0 +1,721 @@
+---
+title: "`spillR`: Spillover Compensation in Mass Cytometry Data"
+author: "Marco Guazzini$^{1}$, Alexander G. Reisach$^{3}$, Sebastian Weichwald$^{4}$, and Christof Seiler$^{1,2}$"
+date: "$^1$Department of Advanced Computing Sciences, Maastricht University, The Netherlands \\\n $^2$Mathematics Centre Maastricht, Maastricht University, The Netherlands \\\n $^3$Université Paris Cité, CNRS, MAP5, F-75006 Paris, France \\\n $^4$Department of Mathematical Sciences, University of Copenhagen, Denmark \\\n \\\n `r gsub(' 0', ' ', format(Sys.time(), '%B %d, %Y'))`"
+output:
+  bookdown::pdf_document2: 
+    toc: false
+  bookdown::word_document2: 
+    toc: false
+bibliography: spillr_paper.bib
+csl: style.csl
+link-citations: true
+abstract: |
+  Channel interference in mass cytometry can cause spillover and may result in miscounting of protein markers. @catalyst introduce an experimental and computational procedure to estimate and compensate for spillover. Their R package `CATALYST` implements this using non-negative least squares. They assume spillover can be approximated by a spillover matrix that encodes proportions of true counts over total observed counts. They estimate the spillover matrix from experiments with beads. We propose to skip the matrix estimation step and work directly with the full bead distributions. We develop a nonparametric finite mixture model, and use the mixture components to estimate the probability of spillover. We implement this in an R package `spillR` using expectation-maximization and logistic regression. We test our procedure on synthetic and real data from `CATALYST`. We find that our method compensates low counts accurately and avoids overcompensating high counts. Intuitively, this makes sense because we use only localized information from beads to estimate compensation. This is in contrast to least squares methods that use proportions estimated over a large signal range.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_packages, echo=FALSE, warning=FALSE, message=FALSE}
+library(spillR)
+library(CATALYST)
+library(CytoSpill)
+library(nnls)
+library(flowCore)
+library(ggplot2)
+library(tibble)
+library(dplyr)
+library(magrittr)
+library(readr)
+library(tidyr)
+library(cowplot)
+library(transport)
+library(RColorBrewer)
+source("compensate.R")
+source("compCytof.R")
+source("plotDiagnostics.R")
+set.seed(23)
+```
+
+# Introduction
+
+Mass cytometry makes it possible to count a large number of proteins simultaneously on individual cells [@bandura2009mass; @bendall2011single]. One advantage over flow cytometry [@sp-c; @novo2013generalized] is the reduced risk of spillover, that is, measurements from one channel overlap less with those of another. Spillover affects downstream analyses such as differential testing [@diffcyt; @seiler2021cytoglmm] or dimensionality reduction [@scater]. Reducing spillover by careful design of experiment is possible [@takahashi2017mass], but a purely experimental approach may not be sufficient nor efficient [@lun2017influence].
+
+@catalyst propose a method for addressing spillover by conducting an experiment on beads. This experiment measures spillover by staining each bead with a single antibody.
+Then they calculate the number of antibodies with the target staining over the total number of antibodies in that experiment. We will refer to this ratio as the spillover proportion. @miao2021ab attempt to solve spillover in a purely statistical manner by fitting a mixture model. Our contribution combines the solutions of @catalyst and @miao2021ab. We still require a bead experiment, as in @catalyst, but estimate spillover leveraging a statistical model, as in @miao2021ab. Both previous solutions rely on an estimate for the spillover matrix using non-negative matrix factorization. We avoid this step and directly describe the spillover channels and the channel with the true signal using a mixture of nonparametric distributions. Our main new assumption is that the spillover distribution---not just the spillover proportion---from the bead experiment carries over to the biological experiment. In other words, we transfer the spillover distribution to the real experiment instead of using the spillover proportion encoded in the spillover matrix.
+
+```{r intro-example, fig.height=3, fig.width=6, out.width="70%", fig.align="center", fig.cap="Two-dimensional histograms of cell counts. The blue shaded rectangle is an estimate of spillover from CD4 (Nd145Di) into CD36 (Nd144Di). Our method will remove counts that fall inside this rectangle.", echo=FALSE, warning=FALSE, message=FALSE}
+# constants
+bc_key <- c(139, 141:156, 158:176)
+
+# helper functions
+tfm <- function(x) asinh(x/5)
+colorscale = scale_fill_gradientn(
+  colors = rev(brewer.pal(9, "YlGnBu")),
+  values = c(0, exp(seq(-5, 0, length.out = 100)))
+  )
+
+# --------- left: experiment with beads ---------
+
+sce_spill <- prepData(ss_exp)
+sce_spill <- assignPrelim(sce_spill, bc_key, verbose = FALSE)
+sce_spill <- applyCutoffs(estCutoffs(sce_spill))
+sce_spill <- computeSpillmat(sce_spill)
+counts_spill <- t(assay(sce_spill, "counts"))
+counts_spill <- floor(counts_spill)
+counts_spill <- as_tibble(counts_spill)
+
+channel_names <- rowData(sce_spill)[,"channel_name"]
+names(counts_spill) <- channel_names
+counts_spill <- mutate(counts_spill, barcode = sce_spill$bc_id)
+counts_spill <- filter(counts_spill, barcode == 144)
+counts_spill <- counts_spill %>% select(-barcode)
+counts_spill <- mutate(counts_spill, type = "beads for CD36 (Nd144Di)")
+
+# --------- right: experiment with real cells ---------
+
+data(mp_cells, package = "CATALYST")
+sce <- prepData(mp_cells)
+channel_names <- rowData(sce)[, "channel_name"]
+counts_real <- t(assay(sce, "counts"))
+counts_real <- floor(counts_real)
+colnames(counts_real) <- channel_names
+counts_real <- as_tibble(counts_real)
+counts_real <- mutate(counts_real, type = "real cells")
+
+# --------- combine tables for plotting ---------
+combo <- bind_rows(counts_spill, counts_real)
+ggplot(combo, aes(x = tfm(Nd144Di), y = tfm(Nd145Di))) +
+  annotate("rect", 
+           xmin = 0, xmax = 6.5,
+           ymin = 0, ymax = 2.5, 
+           alpha = .1, fill = "blue") +
+  geom_hex(bins = 32) +
+  colorscale +
+  facet_wrap(~type) + 
+  xlab("CD36 (Nd144Di)") +
+  ylab("CD4 (Nd145Di)")
+```
+
+To illustrate the main idea of our work, we consider an example with only two markers (Figure \@ref(fig:intro-example)). The left panel depicts an experiment using beads stained only for CD36 (Nd144Di). Without any spillover, all beads would have zero cell counts for CD4 (ND145Di). Yet, there are many bins that contain positive CD4 (ND145Di) bead counts. The blue shaded area provides a reasonable estimate for spillover. The right panel shows an experiment conducted with real cells. Some of the values in the blue shaded area could in principle be real, low counts, but one would expect real counts to be higher and low counts more likely to be spillover. While the precise amount of spillover is unknown, we can estimate it using the bead experiment. One approach could be to carry over a weighted version of the blue shaded area to the real experiment. We formulate this approach using the language of finite mixtures. The blue shaded area plays the role of the spillover component and the non-shaded area is the component representing the true marker signal. Our objective is to separate the true signal from the spillover in this mixture. 
+
+The example highlights the main difference between our method and @catalyst. After removing cells that fall into the blue shaded area, the average CD36 (Nd144Di) count will be larger. So, in this example, our spillover correction method increases the average count. In contrast, @catalyst will shrink all the counts towards zero. As a consequence, the average count will be lower after correction.
+
+In Section \@ref(methods), we present our mixture model and link it to calculating spillover probabilities for specific count values. Our estimation procedure is based on an EM algorithm and logistic regression, and implemented in our new R package `spillR` (https://github.com/marcoguazzini/spillR). In Section \@ref(results), we conduct experiments on simulated and real data obtained from the `CATALYST` R package [@catalyst]. Section \@ref(discussion) relates our findings to `CATALYST` and gives recommendation when to use `spillR`.
+
+# Methods
+
+## Example
+
+```{r method-example, fig.height=3, fig.width=9, out.width="100%", fig.align="center", fig.cap="Left panel: Frequency polygons of marker CD3 (Yb173Di) before and after spillover compensation. Right panel: Density plot of spillover markers. The dashed curve represents the estimated spillover probability with our method.", echo=FALSE, warning=FALSE, message=FALSE}
+# constants
+bc_key <- c(139, 141:156, 158:176)
+
+# --------- experiment with beads ---------
+
+sce_bead <- prepData(ss_exp)
+sce_bead <- assignPrelim(sce_bead, bc_key, verbose = FALSE)
+sce_bead <- applyCutoffs(estCutoffs(sce_bead))
+sce_bead <- computeSpillmat(sce_bead)
+
+# --------- experiment with real cells ---------
+
+data(mp_cells, package = "CATALYST")
+sce <- prepData(mp_cells)
+
+# --------- table for mapping markers and barcode ---------
+marker_to_barc <- 
+  rowData(sce_bead)[,c("channel_name", "is_bc")] %>%
+  as_tibble %>%
+  dplyr::filter(is_bc == TRUE) %>%
+  mutate(barcode = bc_key) %>%
+  select(marker = channel_name, barcode)
+
+# --------- call compensate from compCytof package ---------
+sce_spillr <- compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
+p_list <- plotDiagnostics(sce_spillr, "Yb173Di")
+
+plot_grid(
+    p_list[[1]] + xlab("CD3 (Yb173Di)"),
+    p_list[[2]] + xlab("CD3 (Yb173Di)"),
+    rel_widths = c(0.5, 0.5), nrow = 1
+  )
+```
+
+Figure \@ref(fig:method-example) illustrates our two step procedure using an exemplary dataset from the `CATALYST` package. There are four markers, HLA-DR (Yb171Di), HLA-ABC (Yb172Di), CD8 (Yb174Di), and CD45 (Yb176Di), that spill over into the target marker, CD3 (Yb173Di). We have bead experiments on all the spillover markers. The panel on the left displays the distribution of our target marker, CD3 (Yb173Di), before and after spillover correction. Our compensation method removes some counts in the range between zero to four. Larger counts are not affected by the correction as both curves overlap. 
+
+The panel on the right depicts the marker distributions from the beads experiment. We see that for this marker the bead experiments are high-quality as the target marker Yb173Di is concentrated around six, similarly to the experiment with real cells. This suggest that the spillover markers can be transferred to the real experiments. Marker Yb172Di shows large spillover into Yb173Di, and suggests that much of the first mode of the distribution may be attributed to that marker. The other spillover markers act on the low counts, and make it justifiable to set all the low counts to zero.
+
+The dashed curve is our estimated spillover probability. We can see that at three on the horizontal axis the probability is around 0.8. Our correction step assigns around 80% of cells to spillover, and keeps the other 20% at the current value. Counts below two have spillover probability of one, which means that our procedure assigns all cells to spillover. Counts above five have probability of zero, which means that our procedure keeps them at their raw uncorrected value.
+
+## Definition of Spillover Probability and Assumptions
+
+We observe a count $Y_i$ of marker $i$. If spillover is present, then $Y_i$ will count both the true marker $i$ and other markers $j$ spilling over into marker $i$. We model the observed $Y_i$ as a finite mixture [@mclachlan2019finite] of unobserved true marker counts $Z_{1 \to i}, \dots, Z_{J \to i}$, which each may spill into $Y_i$ with spillover probability $\pi_{j \to i}$, 
+$$
+P(Y_i = y) = \sum_{j = 1}^J \pi_{j \to i} \, P(Z_{j \to i} = y).
+$$
+The probability of spillover of $i$ into itself is not actual spillover, but corresponds to the proportion of true signal in the observed count. The total of all the spillover probabilities equals to one, $\sum_j \pi_{j \to i} = 1$. Conceptually, we divide the probabilities into true signal probability, $\pi_{i \to i}$, and the probability of spillover, that is, the total probability of all but the $i$th probability, $\sum_{j \ne i} \pi_{i \to j}$. The total number of markers $J$ in mass cytometry panels is between 30 and 40 [@bendall2011single]. Typically, only a small subset of three to four markers spill over into the target marker [@catalyst].
+
+Experimentally, we only measure a sample from the distribution $Y_i$. The probabilities $\pi_{j \to i}$ and true distributions $P(Z_{j \to i} = y)$ are unobserved, and we need to estimate them from data. In many applications, the mixture components, $P(Z_{1 \to i}), \dots, P(Z_{J \to i})$, are in a parametric family, for example, the negative binomial distribution. Here we propose to fit nonparametric mixture components. We make three assumptions that render the components and mixture probabilities identifiable:
+
+* <div id='assumption1'>(A1) Spillover distributions are the same in bead and real experiments.</div>
+
+The distribution of $Z_{j \to i}$ that spills over into the true marker $i$ is the same in beads and real cells. This assumption allows us to learn the spillover distributions of $Z_{1 \to i},\dots,Z_{i-1 \to i},Z_{i+1 \to i},\dots,Z_{J \to i}$---except the true marker $Z_{i \to i}$---from experiments with beads, and transfer them to the experiment with real cells. This assumption relies on high-quality bead experiments that measure spillover in the same range as the target biological experiment.
+
+* <div id='assumption2'>(A2) Spillover counts and true counts are the only contributors to the total measured counts.</div>
+
+With this assumption, we can calculate the spillover probability for a given count $Y_i = y$ from the posterior probability that it arises through spillover from marker $j$,
+$$
+P(\text{spillover} \, | \, Y_i = y) = \frac{\sum_{j \ne i} \pi_{j \to i} \, P(Z_{j \to i} = y)}{\sum_{j = 1}^J \pi_{j \to i} \, P(Z_{j \to i} = y)} = 1 - \frac{\pi_{i \to i} \, P(Z_{j \to i} = y)}{\sum_{j = 1}^J \pi_{j \to i} \, P(Z_{j \to i} = y)}.
+$$
+
+
+To parse this calculation, recall that in mixture models the probability $\pi_{j \to i}$ is the prior probability, $P(Z_{j \to i} = y)$ is the conditional probability of obtaining count $y$ given the mixture component is marker $j$ spilling over into marker $i$, and the denominator is the marginal distribution. Putting all this together and applying Bayes rule leads to the posterior probability.
+
+* <div id='assumption3'>(A3) Spillover probability curves are logistic functions.</div>
+
+The spillover probability is the probability that the counts are not due to the marker of interest but result of another marker spilling over into $Y_i$. The spillover probability is a function of $y$. Larger $y$ will not have any spillover and only have true signal. In contrast, smaller $y$ are more likely a result of another marker spilling over. Although it is biologically possible that spillover happens at higher counts, this assumption makes our statistical procedure more stable. We chose the logistic function as it is the standard option for logistic regression.
+
+## Estimation of Spillover Probability
+
+We propose a two step procedure for estimating spillover probability. In step 1, we initialize all marker distributions $P(Z_{j \to i} = y)$ and the mixture probability vector $\pi_{j \to i}$. We update the mixture probability vector and the mixture component of the target marker $P(Z_{i \to i} = y)$ using the EM algorithm [@dempster1977maximum]. In step 2, we fit a logistic function to the noisy probability estimates from step 2 using logistic regression and apply the correction.
+
+### Step 1: EM Algorithm
+
+We count the number of cells that have $y$ proteins on marker $j$, denoted by $y_j$, and divide by the total number of cells $N_j$ measured for that marker. The ratio provides nonparametric estimates of the probability mass function, 
+$$
+P^{(t)}(Z_{j \to i} = y) = y_j^{(t)}/N_j^{(t)}.
+$$
+The data for spillover markers comes from the bead experiments. The data for the target marker comes from the experiment with real cells. We set the mixture probability vector to the discrete uniform, $\pi_{1 \to i}^{(t)}, \dots, \pi_{J \to i}^{(t)} = 1/J$. The superscript $t$ indicates that this is the $t$th iteration. For the next iteration $t + 1$, we update the target distribution and the mixture probability vector using the hard-assignment EM algorithm:
+
+* E-step: We calculate the probability of a count $Y_i = y$ actually belonging to marker $j$ from the current estimate of the marker distributions and mixture probability vector:
+$$
+P(\text{count belongs to marker } j \, | \, Y_i = y) = \frac{\pi_{j \to i}^{(t)} \, P^{(t)}(Z_{j \to i} = y)}{\sum_{k = 1}^J \pi_{k \to i}^{(t)} \, P^{(t)}(Z_{k \to i} = y)}.
+$$
+* M-step: First, we update the mixture probability vector, 
+$$
+\pi_{j \to i}^{(t+1)} = \frac{1}{N_j^{(t)}} \sum_{k = 1}^{N_j^{(t)}} P(\text{count belongs to marker } j \, | \, Y_j = y),
+$$
+then, we assign counts to the marker with the largest posterior probability, and re-estimate the distribution for the target marker, $Z_i$, with the newly assigned counts,
+$$
+P^{(t+1)}(Z_{i \to i} = y) = y_i^{(t+1)}/N_i^{(t+1)}.
+$$
+
+We fix all the other marker distributions at their initial estimates and only update the target distribution throughout the procedure. This makes sense as we know the correct assignments for the other markers from the controlled bead experiments and by relying on assumption [(A1)](#assumption1). In other words, we estimate $P(Z_{j \to i} = y)$ during the first iteration and keep it fixed afterwards. We keep updating $P(Z_{i \to i} = y)$ at every iteration on the newly identified set of cells that belong to marker $j$. The E-step relies on our assumption [(A2)](#assumption2).
+
+### Step 2: Logistic Regression
+
+This step is a post-processing step. Until now, the procedure is fully nonparametric. We apply no regularization to $y$'s that are close to one another. As a result, the spillover probability estimates are noisy---flipping back and forth between zero and one---and we need to regularize them using our assumption [(A3)](#assumption3).
+
+The logistic regression model is,
+$$
+\log\left(\frac{P(\text{spillover} \, | \, Y_i = y)}{1-P(\text{spillover} \, | \, Y_i = y)}\right) = \beta_0 + \beta_1 y,
+$$
+with $y$ transformed using the inverse hyperbolic sine transformation with the cofactor set 5 [@bendall2011single] to stabilize the variance and account for heteroskedasticity. We fit the logistic regression model using maximum likelihood (MLE) estimation and obtain estimates for the intercept $\hat{\beta}_0$ and slope $\hat{\beta}_1$. The post-processed spillover probability is the predicted probability for $Y_i = y$,
+$$
+\hat{P}(\text{spillover} \, | \, Y_i = y) = (1 + e^{-(\hat{\beta}_0 + \hat{\beta}_1 y)})^{-1}.
+$$
+We obtain the last equation by solving the logistic regression model for the spillover probability and plugging in the MLE estimate. We use the spillover probability to flip a biased coin and declare the current count as spillover if the coin comes up heads, otherwise we keep the count. We consider spillover counts as counts that have no clear biological interpretation and remove them from our dataset. In our implementation, we choose to set them to `NA` values instead of zeros to avoid zero-inflated distributions.
+
+<!-- 
+
+## Identifiability
+
+[TODO] Need to think if our model assumptions guarantee identifiability and if our procedure is guaranteed to converge. I think if it is identifiable, then convergence follows from the property of the EM algorithm. Some related work [@hall2003nonparametric; @aragam2020identifiability] that might help. 
+
+-->
+
+# Results
+
+We first evaluate our new method `spillR` on simulated datasets. We probe our method to experimentally find its shortcomings. Then, we compare `spillR` to the method implemented in `CATALYST` based on non-negative least squares on real data from the `CATALYST` package on Bioconductor. All experiments and plots can be reproduced by compiling the R markdown file `spillR_paper.Rmd` (https://github.com/ChristofSeiler/spillR_paper).
+
+## Simulated Data
+
+```{r simulated-experiments, fig.height = 5, fig.width = 9, out.width = "90%", fig.align = "center", echo = FALSE, warning = FALSE, message = FALSE, cache = TRUE, fig.cap="Four experiments testing our three assumptions (A1), (A2), and (A3). In all experiments, the vertical axis represents the Wassertein distance between true signal and compensated signal."}
+# --------- global parameters ---------
+
+n_real <-10000
+n_bead <- 1000
+lambda_real <- 100
+lambda_bead  <- 70
+mode_prob    <- 0.5
+spill_prob   <- 0.1
+
+# --------- helper functions ---------
+
+tfm <- function(x) asinh(x/5)
+
+compute_wasserstein <- function(ftn, parameter) {
+  data <- ftn(parameter)
+  comp <- compensate(data$df_real, data$df_bead, 
+                     target_marker = "Y", 
+                     spillover_markers = "Z")
+  y_comp  <- comp$tb_compensate$corrected
+  #y_comp[y_comp == 0] <- NA
+  y_truth <- data$Z_target
+  transport::wasserstein1d(y_comp[!is.na(y_comp)], y_truth)
+}
+
+plot_results <- function(tb_experiment, group_var) {
+  
+  # summarize replicates
+  tb_summary <- tb_experiment %>% 
+    group_by(.data[[group_var]]) %>% 
+    summarize(
+      mean = mean(w1),
+      se = sd(w1)
+      ) %>% 
+    ungroup()
+  
+  # plot with error bars
+  tb_summary %>% 
+    mutate(lower = mean-se, upper = mean+se) %>%
+    ggplot(aes(.data[[group_var]], mean)) +
+    geom_linerange(aes(ymin = lower, ymax = upper), alpha = 0.3) +
+    geom_line() + 
+    ylab("Wasserstein distance")
+  
+}
+
+# --------- panel (a) ---------
+
+generate_data_a1 <- function(shift) {
+  # real experiment
+  Z_target <- rpois(n = n_real, lambda = lambda_real)
+  Z_spill  <- rpois(n = n_real, lambda = lambda_bead+shift)
+  spill    <- rbinom(n = n_real, size = 1, prob = spill_prob)
+  Y        <- (1-spill)*Z_target + spill*Z_spill
+  df_real  <- tibble(Y = Y, barcode = "Y", type = "real cells")
+  
+  # bead experiment
+  Z_bead   <- rpois(n = n_bead, lambda = lambda_bead)
+  df_bead  <- tibble(Y = Z_bead, barcode = "Z", type = "beads")
+  
+  list(df_real = df_real, df_bead = df_bead, 
+       Z_target = Z_target, Z_spill = Z_spill)
+}
+
+# create parameter combination
+p_a1 <- expand.grid(
+  shift = seq(-60, 0, 1), 
+  replicate = 1:5
+  ) %>%
+  rowwise() %>% 
+  mutate(w1 = compute_wasserstein(generate_data_a1, shift)) %>% 
+  plot_results("shift") + 
+  xlab("bead shift") + 
+  ggtitle("Invariant Spillover Distributions (A1)")
+
+# --------- panel (b) ---------
+
+generate_data_a2 <- function(spill_hidden) {
+  # real experiment
+  Z_target <- rpois(n = n_real, lambda = lambda_real)
+  Z_spill  <- rpois(n = n_real, lambda = lambda_bead)
+  Z_spill_hidden <- rpois(n = n_real, lambda = lambda_bead)
+  no_spill <- 1 - sum(spill_prob, spill_hidden)
+  spill_prob_vec <- c(no_spill, spill_prob, spill_hidden)
+  spill    <- rmultinom(n = n_real, size = 1, prob = spill_prob_vec)
+  Y        <- spill[1, ]*Z_target + spill[2, ]*Z_spill + spill[3, ]*Z_spill_hidden
+  df_real  <- tibble(Y = Y,
+                     barcode = "Y",
+                     type = "real cells")
+  
+  # bead experiment
+  Z_bead   <- rpois(n = n_bead, lambda = lambda_bead)
+  df_bead  <- tibble(Y = Z_bead,
+                     barcode = "Z",
+                     type = "beads")
+  
+  list(df_real = df_real, df_bead = df_bead, 
+       Z_target = Z_target, Z_spill = Z_spill)
+}
+
+# create parameter combination
+p_a2 <- expand.grid(
+  spill_hidden = seq(from = 0, to = 0.85, by = 0.01), 
+  replicate = 1:5
+  ) %>%
+  rowwise() %>% 
+  mutate(w1 = compute_wasserstein(generate_data_a2, spill_hidden)) %>%
+  plot_results("spill_hidden") + 
+  xlab("P(hidden spillover marker)") +
+  ggtitle("No Hidden Confounding (A2)")
+
+# --------- panel (c) ---------
+
+generate_data_a3_bead <- function(second_mode) {
+  # real experiment
+  Z_target  <- rpois(n = n_real, lambda = lambda_real)
+  Z_spill1  <- rpois(n = n_real, lambda = lambda_bead)
+  Z_spill2  <- rpois(n = n_real, lambda = second_mode)
+  mode      <- rbinom(n = n_real, size = 1, prob = mode_prob)
+  Z_spill   <- (1-mode)*Z_spill1 + mode*Z_spill2
+  spill     <- rbinom(n = n_real, size = 1, prob = spill_prob)
+  Y         <- (1-spill)*Z_target + spill*Z_spill
+  df_real   <- tibble(Y = Y, barcode = "Y", type = "real cells")
+  
+  # bead experiment
+  Z_bead1   <- rpois(n = n_real, lambda = lambda_bead)
+  Z_bead2   <- rpois(n = n_real, lambda = second_mode)
+  mode      <- rbinom(n = n_real, size = 1, prob = mode_prob)
+  Z_bead    <- (1-mode)*Z_bead1 + mode*Z_bead2
+  df_bead   <- tibble(Y = Z_bead, barcode = "Z", type = "beads")
+
+  list(df_real = df_real, df_bead = df_bead, 
+       Z_target = Z_target, Z_spill = Z_spill)
+}
+
+# create parameter combination
+p_a3_bead <- expand.grid(
+  second_mode = seq(5, 150, 1), 
+  replicate = 1:5
+  ) %>%
+  rowwise() %>% 
+  mutate(w1 = compute_wasserstein(generate_data_a3_bead, second_mode)) %>%
+  plot_results("second_mode") + 
+  xlab("location of second mode") +
+  ggtitle("Bimodal Beads (A3)")
+
+# --------- panel (d) ---------
+
+generate_data_a3_real <- function(second_mode) {
+  # real experiment
+  Z_target1 <- rpois(n = n_real, lambda = lambda_real)
+  Z_target2 <- rpois(n = n_real, lambda = second_mode)
+  mode      <- rbinom(n = n_real, size = 1, prob = mode_prob)
+  Z_target  <- (1-mode)*Z_target1 + mode*Z_target2
+  Z_spill   <- rpois(n = n_real, lambda = lambda_bead)
+  spill     <- rbinom(n = n_real, size = 1, prob = spill_prob)
+  Y         <- (1-spill)*Z_target + spill*Z_spill
+  df_real   <- tibble(Y = Y, barcode = "Y", type = "real cells")
+  
+  # bead experiment
+  Z_bead    <- rpois(n = n_real, lambda = lambda_bead)
+  df_bead   <- tibble(Y = Z_bead, barcode = "Z", type = "beads")
+
+  list(df_real = df_real, df_bead = df_bead, 
+       Z_target = Z_target, Z_spill = Z_spill)
+}
+
+# create parameter combination
+p_a3_real <- expand.grid(
+  second_mode = seq(5, 150, 1), 
+  replicate = 1:5
+  ) %>%
+  rowwise() %>% 
+  mutate(w1 = compute_wasserstein(generate_data_a3_real, second_mode)) %>%
+  plot_results("second_mode") + 
+  xlab("location of second mode") +
+  ggtitle("Bimodal Real Cells (A3)")
+
+# --------- combined plot ---------
+
+plot_grid(p_a1, p_a2, p_a3_bead, p_a3_real, nrow = 2)
+```
+
+We choose four different experiments to test how robust `spillR` is when one of our three assumptions are violated. We explore a wide range of possible parameter settings. To visualize the massive amount of experiments, we measure distances between true and compensated distributions. Among the many possibilities to calculate the distance between two probability distributions, we choose the Wasserstein distance or earth mover's distance, as it has an intuitive interpretation and has been applied to single cell data [@schefzik2021fast]. We use the implementation in R package `transport` on CRAN [@schuhmacher2020transport].
+
+<!-- 
+We have one pile of earth that we would like to move to another location. We know the source pile of earth distribution and we also know the distribution of the target pile. The task is to transport small chunks of dirt from the source pile to the target pile while traveling the least amount possible. The distances weighted by the weight of the dirt chunk is the earth mover's distance.
+-->
+
+Figure \@ref(fig:simulated-experiments) has four panels, one panel per experimental setup. The first row tests our assumptions [(A1)](#assumption1) and [(A2)](#assumption2). The second row tests assumption [(A3)](#assumption3) with two different experiments. For all experiments, we model counts using a Poisson distribution with parameter $\lambda$. We use 10,000 real cells, 1,000 beads, $\lambda = 100$ for real cells, $\lambda = 70$ for beads, the mixing probability is $0.5$ for bimodal distribution, and the spillover probability is $0.1$. Beads are an independent copy of the true spillover. The other parameters and statistical dependencies are specific to each experiment. The details of the generative models are in Appendix \@ref(generative-models). We quantify uncertainty with grey vertical lines representing the standard error computed over five replications of the same experiment.
+
+### Invariant Spillover Distributions (A1)
+
+In the first experiment (top left of Figure \@ref(fig:simulated-experiments)), we shift the spillover distribution in the beads by $\tau$ to explore the robustness of our method with respect to our first assumption [(A1)](#assumption1). The distances start around $8$ when $\tau = -60$. The distances decrease as $\tau$ increases and the spillover signal shift further towards larger values. The distances plateau at around $\tau = -10$.
+
+### No Hidden Confounding (A2)
+
+In the second experiment (top right of Figure \@ref(fig:simulated-experiments)), we add a hidden spillover marker to explore the robustness of our method with respect to our second assumption [(A2)](#assumption2). One way to think about this that the hidden spillover is a form of hidden confounding. If $\tau = 0$, then assumption [(A2)](#assumption2) is correct. Large $\tau$ violate our assumption. Our true spillover has probability of $0.1$, so the maximum amount of spillover is $\tau = 0.9$. The distance increases monotonically. The distance is close to zero for $\tau < 0.5$. After that, it start to increase quickly.
+
+### Bimodal Beads (A3)
+
+In the third experiment (bottom left of Figure \@ref(fig:simulated-experiments)), we model spillover with a bimodal distribution. The parameter $\tau$ is the location of the second mode. If $\tau = 70$, then our assumption [(A3)](#assumption3) is correct. values different from $\tau$ violate our assumption. The distances up to $\tau < 70$ are stable. Starting around $\tau = 100$, the distances get unstable with large standard errors. 
+
+### Bimodal Real Cells (A3)
+
+In the last experiment (bottom right of Figure \@ref(fig:simulated-experiments)), we model the true signal with a bimodal distribution, a pattern that we observe frequently in real data. Here we again explore the robustness of our method against a violation of the third assumption [(A3)](#assumption3). The parameter $\tau$ represents the location of the second mode. The distances are below $2.5$ for $\tau < 50$ and $\tau > 100$. There is global maximum at $\tau = 70$, when the second signal mode overlaps the spillover mode.
+
+## Real Data
+
+We compare our method to `CATALYST` on one of the example datasets in the `CATALYST` package. The dataset has an experiment with real cells and a corresponding bead experiment. The experiments on real cells has 5,000 peripheral blood mononuclear cells from healthy donors measured on 39 channels. The experiment on beads has 10,000 cells measured on 36 channels. They have single stained bead experiments. The number of beads per mental label range from 112 to 241.
+
+We compare the two methods on the same marker as in the original `CATALYST` paper [@catalyst] in their Figure 3B. In the original experiment, they conjugated three proteins---CD3, CD8, and HLA-DR---with two different metal labels. They conjugated CD8 (first row in Figure \@ref(fig:spillr-vignette)) with Yb174Di (Yb is the metal and 174 is the number of neutrons of the isotope) and La139Di, and similarly for the other rows. On the horizontal axis, we plot the same markers as in the original paper, CD3 and HLA-ABC (for the second and third row). We visualize the joint distributions using two-dimensional histograms.
+
+```{r spillr-vignette, fig.height = 6, fig.width = 10, out.width = "100%", fig.align = "center", echo = FALSE, warning = FALSE, message = FALSE, fig.cap="Comparison of compensation methods and uncorrected counts on real data."}
+ # constants
+bc_key <- c(139, 141:156, 158:176)
+
+# helper functions
+colorscale = scale_fill_gradientn(
+  colors = rev(brewer.pal(9, "YlGnBu")),
+  values = c(0, exp(seq(-5, 0, length.out = 100)))
+  )
+
+# --------- experiment with beads ---------
+
+sce_bead <- prepData(ss_exp)
+sce_bead <- assignPrelim(sce_bead, bc_key, verbose = FALSE)
+sce_bead <- applyCutoffs(estCutoffs(sce_bead))
+sce_bead <- computeSpillmat(sce_bead)
+
+# --------- experiment with real cells ---------
+
+data(mp_cells, package = "CATALYST")
+sce <- prepData(mp_cells)
+
+# --------- table for mapping markers and barcode ---------
+marker_to_barc <- 
+  rowData(sce_bead)[,c("channel_name", "is_bc")] %>%
+  as_tibble %>%
+  dplyr::filter(is_bc == TRUE) %>%
+  mutate(barcode = bc_key) %>%
+  dplyr::select(marker = channel_name, barcode)
+
+# --------- call compensate from compCytof package ---------
+sce_spillr <- compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
+
+# --------- 2d histogram from spillR (for vignette, not for paper) ---------
+# as <- c("counts", "exprs", "compcounts", "compexprs")
+# chs <- c( "Yb171Di", "Yb173Di")
+# ps <- lapply(as, function(a) 
+#     plotScatter(sce_spillr, chs, assay = a))
+# plot_grid(plotlist = ps, nrow = 2)
+
+# --------- run CATALYST ---------
+sm <- metadata(sce_bead)$spillover_matrix
+sce_catalyst <- CATALYST::compCytof(sce, sm, overwrite = FALSE)
+
+# --------- compare spillR and CATALYST (Figure 3B) ---------
+exprs_spillr <- sce_spillr %>% 
+  assay("exprs") %>%
+  t() %>%
+  as_tibble() %>%
+  mutate(method = "uncorrected")
+compexprs_spillr <- sce_spillr %>% 
+  assay("compexprs") %>%
+  t() %>%
+  as_tibble() %>%
+  mutate(method = "spillR")
+compexprs_catalyst <- sce_catalyst %>% 
+  assay("compexprs") %>%
+  t() %>%
+  as_tibble() %>%
+  mutate(method = "CATALYST")
+combo <- bind_rows(exprs_spillr, compexprs_spillr, compexprs_catalyst)
+combo$method <- factor(combo$method, levels=c('uncorrected', 'CATALYST', 'spillR'))
+
+# row 1
+p1 <- ggplot(combo, aes(x = CD3.2, y = CD8b)) +
+  geom_hex(bins = 32) + colorscale + facet_wrap(~method) +
+  xlab("CD3 (Yb173Di)") + ylab("CD8 (Yb174Di)")
+p2 <- ggplot(combo, aes(x = CD3.2, y = CD8)) +
+  geom_hex(bins = 32) + colorscale + facet_wrap(~method) +
+  xlab("CD3 (Yb173Di)") + ylab("CD8 (La139Di)")
+
+# row 2
+p3 <- ggplot(combo, aes(x = HLA.ABC, y = CD3.2)) +
+  geom_hex(bins = 32) + colorscale + facet_wrap(~method) +
+  xlab("HLA-ABC (Yb172Di)") + ylab("CD3 (Yb173Di)")
+p4 <- ggplot(combo, aes(x = HLA.ABC, y = CD3.1)) +
+  geom_hex(bins = 32) + colorscale + facet_wrap(~method) +
+  xlab("HLA-ABC (Yb172Di)") + ylab("CD3 (Sm147Di)")
+
+# row 3
+p5 <- ggplot(combo, aes(x = HLA.ABC, y = HLA.DR.1)) +
+  geom_hex(bins = 32) + colorscale + facet_wrap(~method) +
+  xlab("HLA-ABC (Yb172Di)") + ylab("HLA-DR (Yb171Di)")
+p6 <- ggplot(combo, aes(x = HLA.ABC, y = HLA.DR.2)) +
+  geom_hex(bins = 32) + colorscale + facet_wrap(~method) +
+  xlab("HLA-ABC (Yb172Di)") + ylab("HLA-DR (Lu175Di)")
+
+plot_grid(p1, p2, p3, p4, p5, p6, ncol = 2)
+```
+
+# Discussion
+
+Relating the Wasserstein distance to a biological meaningful quantity is challenging. But the overall trends of the distance curves are still helpful to assess the sensitivity of our method with respect to modeling violations. The experiment for [(A1)](#assumption1) shows the performance of our method on different settings that are also present in the real data. The main challenge is when the distribution in the bead experiment has larger mass on higher counts than in the real experiment. We observe such patterns in the `CATALYST` example data (Figure \@ref(fig:method-example-cd68-cd45) in Appendix \@ref(two-real-cases)) for protein CD68 with the metal label Eu153Di. In that case, assumption [(A1)](#assumption1) does not hold. For some markers CD45 with metal label Gd160Di, the second mode of the observed marker distribution overlaps with the bead experiment. In that case, assumption [(A1)](#assumption1) holds. As expected our method performs worse when the true signal overlaps with the spillover. The experiment for [(A2)](#assumption2) shows that our methods is robust to hidden spillover. Hidden spillover should not be a major issue as we can add all channels. The increase in computational cost is relatively minor as our methods scales linearly in the number of spillover markers. Both experiments that test for bimodal distribution show potential instabilities of our method. The bimodal bead experiment displays large standard errors over the repeated experiment when the second bead mode is equal or larger than the true signal. The probability of spillover increases and our method tends to overcompensate. The bimodal real cells experiment displays large distances to the true signal when the second mode of the true signal is close to the bead mode.
+
+Comparisons between methods on real data are also challenging. Unfortunately, there is no ground truth available. Overall, our method compensate more for spillover than `CATALYST`. Our spillover correction is consistent with the bead distribution. In some of the channels, the distribution of the real cells is less than in the bead experiment. This could indicate that we overcorrect in such situations. But we could also still be within the stable bead shift regime. So, it is not possible to make final conclusions. The best way to avoid overcorrections with our method is to design bead experiments with a similar distribution for the real cells. `CATALYST` assumes linearity up to 5,000 of the spillover. `spillR` does not require linearity of the spillover, but assumes that the distribution on the beads experiment carries over to the real cells experiment.
+
+We estimate bead and real distributions using their empirical distributions from the bead experiment. From histograms, we observe that these estimates are noisy. Reducing the noise by fitting a parametric model or by smoothing seems promising. We conducted extensive experiments comparing different post-processing methods. We fit a polynomial poisson regression, a smoother, and a local polynomial regression to the bead and real cell distributions. All methods were unstable. They worked on some markers, but failed on others. This could be due to the small sample sizes for the bead experiments---around 100 cells per bead experiment. To leverage these methods we will need bead experiments with larger cell sample sizes.
+
+The advantage of our methods is that we can inspect it by plotting the spillover probability curve using the function `plotDiagnostics`. We can judge if the curve makes sense by comparing it to the observed count and bead distributions. Methods based on non-negative least squares are harder to diagnose as they minimize a cost function with no clear biological interpretation. Therefore, we recommend to use `spillR` whenever high quality bead experiments are available.
+
+# Acknowledgments {-}
+
+We thank EuroBioC2022 for awarding Marco Guazzini a travel award to present a preliminary version of `spillR` in Heidelberg.
+
+# References {-}
+
+<div id="refs"></div>
+
+# (APPENDIX) Supplementary Material {-}
+
+\newpage
+
+# Generative Models
+
+## Invariant Spillover Distributions (A1)
+
+The generative model for real cells $Y$ of this experiment is,
+$$
+\begin{aligned}
+S          & \sim \text{Bernoulli}(0.1)   & \qquad \text{(pick spillover)} \\
+Z          & \sim \text{Poisson}(100)     & \qquad \text{(true signal)} \\
+Z'         & \sim \text{Poisson}(70+\tau) & \qquad \text{(spillover with shift } \tau \text{)} \\
+Y_\text{r} & = (1-S) Z + S Z'             & \qquad \text{(observed real cells)}.
+\end{aligned}
+$$
+The generative model for beads is an independent copy of the unshifted $Z'$ at $\tau = 0$.
+
+```{r critical-points-a1, fig.height = 2.5, fig.width = 9, out.width = "90%", fig.align = "center", echo = FALSE, warning = FALSE, message = FALSE, fig.cap="Three points from each experiment."}
+# --------- helper functions ---------
+generate_critical <- function(fn, parameter) {
+  
+  # generate data and run compensation algorithm
+  data <- fn(parameter)
+  comp <- compensate(data$df_real, 
+                     data$df_bead, 
+                     target_marker = "Y", 
+                     spillover_markers = "Z")
+  
+  # prepare data for plotting
+  tb_target <- tibble(y = data$Z_target) %>% 
+    count(y) %>% 
+    mutate(probability = n/max(n)) %>% 
+    mutate(type = "signal (Z)") %>% 
+    dplyr::select(-n)
+  tb_spill <- tibble(y = data$Z_spill) %>% 
+    count(y) %>% 
+    mutate(probability = n/max(n)) %>% 
+    mutate(type = "spillover (Z')") %>% 
+    dplyr::select(-n)
+  tb_prob <- comp$tb_spill_prob %>% 
+    dplyr::select(y = Y, probability = spill_prob_smooth) %>% 
+    mutate(type = "P(spillover)")
+  bind_rows(tb_target, tb_spill, tb_prob) %>% 
+    mutate(parameter = parameter)
+
+}
+
+tb_a1 <- lapply(c(-60, -30, 0), 
+                function(i) generate_critical(generate_data_a1, i)
+                ) %>% bind_rows()
+ggplot(tb_a1, aes(y, probability, color = type)) + 
+  geom_line() +
+  facet_wrap(~parameter, nrow = 1, scales = "free_x") +
+  ggtitle("Invariant Spillover Distributions (A1)")
+```
+
+Figure \@ref(fig:critical-points-a1) represents the distributions at $\tau = -60$, $\tau = -30$, and $\tau = 0$. The signal $Z$ and spillover distribution $Z'$ are density plots. The red curve represents the estimated probability spillover curve. Note that the red curve does not integrate to one. It represents the probability of spillover at a given point on the horizontal axis.
+
+## No Hidden Confounding (A2)
+
+The generative model for real cells $Y$ of this experiment is,
+$$
+\begin{aligned}
+S   & \sim \text{Categorical}(1 - (0.1 + \tau), 0.1, \tau) & \qquad \text{(pick spillover with hidden probability } \tau \text{)} \\
+Z   & \sim \text{Poisson}(100)                             & \qquad \text{(true signal)} \\
+Z'  & \sim \text{Poisson}(70)                              & \qquad \text{(spillover)} \\
+Z_h & \sim \text{Poisson}(70)                              & \qquad \text{(hidden spillover)} \\
+Y   & = I(S=1) Z + I(S = 2) Z' + I(S = 3) Z_h              & \qquad \text{(observed real cells)}.
+\end{aligned}
+$$
+The generative model for beads is an independent copy of $Z'$.
+
+```{r critical-points-a2, fig.height = 2.5, fig.width = 9, out.width = "90%", fig.align = "center", echo = FALSE, warning = FALSE, message = FALSE, fig.cap="Three points from each experiment."}
+tb_a2 <- lapply(c(0, 0.5, 0.6), 
+                function(i) generate_critical(generate_data_a2, i)
+                ) %>% bind_rows()
+ggplot(tb_a2, aes(y, probability, color = type)) + 
+  geom_line() +
+  facet_wrap(~parameter, nrow = 1, scales = "free_x") +
+  ggtitle("No Hidden Confounding (A2)")
+```
+
+Figure \@ref(fig:critical-points-a2) represents the two end points of the range where distances are stable, and the point $\tau = 0.6$ illustrates the distribution outside of this range.
+
+## Biomodal Beads (A3)
+
+The generative model for real cells $Y$ of this experiment is,
+$$
+\begin{aligned}
+M   & \sim \text{Bernoulli}(0.5)       & \qquad \text{(pick mode)} \\
+Z_1 & \sim \text{Poisson}(70)          & \qquad \text{(first mode of spillover)} \\
+Z_2 & \sim \text{Poisson}(\tau)        & \qquad \text{(second mode with mean } \tau \text{ of spillover } \\
+Z'  & = (1-M) Z_1 + M Z_2              & \qquad \text{(spillover)} \\
+S   & \sim \text{Bernoulli}(0.1)       & \qquad \text{(pick spillover)} \\
+Z   & \sim \text{Poisson}(100)         & \qquad \text{(true signal)} \\
+Y   & = (1-S) Z + S Z'                 & \qquad \text{(observed real cells)}.
+\end{aligned}
+$$
+The generative model for beads is an independent copy of $Z'$.
+
+```{r critical-points-a3-bead, fig.height = 2.5, fig.width = 9, out.width = "90%", fig.align = "center", echo = FALSE, warning = FALSE, message = FALSE, fig.cap="Three points from each experiment."}
+tb_a3_bead <- lapply(c(70, 100, 130), 
+                function(i) generate_critical(generate_data_a3_bead, i)
+                ) %>% bind_rows()
+ggplot(tb_a3_bead, aes(y, probability, color = type)) + 
+  geom_line() +
+  facet_wrap(~parameter, nrow = 1, scales = "free_x") +
+  ggtitle("Bimodal Beads (A3)")
+```
+
+Figure \@ref(fig:critical-points-a3-bead) represents points from the stable and unstable range.
+
+## Bimodal Real Cells (A3)
+
+The generative model for real cells $Y$ of this experiment is,
+$$
+\begin{aligned}
+S   & \sim \text{Bernoulli}(0.1) & \qquad \text{(pick spillover)} \\
+Z'  & \sim \text{Poisson}(70)    & \qquad \text{(spillover)} \\
+M   & \sim \text{Bernoulli}(0.5) & \qquad \text{(pick mode)} \\
+Z_1 & \sim \text{Poisson}(100)   & \qquad \text{(first mode of true signal)} \\
+Z_2 & \sim \text{Poisson}(\tau)  & \qquad \text{(second mode with mean } \tau \text{ of true signal)} \\
+Z   & = (1-M) Z_1 + M Z_2        & \qquad \text{(true signal)} \\
+Y   & = (1-S) Z + S Z'           & \qquad \text{(observed real cells)}.
+\end{aligned}
+$$
+The generative model for beads is an independent copy of $Z'$.
+
+```{r critical-points-a3-real, fig.height = 2.5, fig.width = 9, out.width = "90%", fig.align = "center", echo = FALSE, warning = FALSE, message = FALSE, fig.cap="Three points from each experiment."}
+tb_a3_real <- lapply(c(50, 70, 130), 
+                function(i) generate_critical(generate_data_a3_real, i)
+                ) %>% bind_rows()
+ggplot(tb_a3_real, aes(y, probability, color = type)) + 
+  geom_line() +
+  facet_wrap(~parameter, nrow = 1, scales = "free_x") +
+  ggtitle("Bimodal Real Cells (A3)")
+```
+
+Figure \@ref(fig:critical-points-a3-real) represents points two points in the tail with smaller distances and the global maximum.
+
+\newpage
+
+# Two Real Cases
+
+Dataset from original `CATALYST` paper [@catalyst].
+
+```{r method-example-cd68-cd45, fig.height=6, fig.width=9, out.width="100%", fig.align="center", fig.cap="Left panels: Frequency polygons before and after spillover compensation. Right panels: Density plot of spillover markers. The black dashed curve in the plot on the right represents the spillover probability estimated by our method.", echo=FALSE, warning=FALSE, message=FALSE}
+p_list <- plotDiagnostics(sce_spillr, "Eu153Di")
+p1 <- plot_grid(
+    p_list[[1]] + xlab("CD68 (Eu153Di)"),
+    p_list[[2]] + xlab("CD68 (Eu153Di)"),
+    rel_widths = c(0.5, 0.5), nrow = 1
+  )
+
+p_list <- plotDiagnostics(sce_spillr, "Gd160Di")
+p2 <- plot_grid(
+    p_list[[1]] + xlab("CD45 (Gd160Di)"),
+    p_list[[2]] + xlab("CD45 (Gd160Di)"),
+    rel_widths = c(0.5, 0.5), nrow = 1
+  )
+
+plot_grid(p1, p2, nrow = 2)
+```
