@@ -1,2 +1,4 @@
 importFrom("stats", "binomial", "coef", "glm", "rbinom", "rpois")
+importFrom("tibble", "tibble")
+importFrom("magrittr", "%<>%", "%>%")
 exportPattern("^[[:alpha:]]+")
