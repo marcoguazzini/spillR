@@ -1,7 +1,11 @@
 # spillR: vignette
 
-
 ```r
+#run once
+devtools::install_github("marcoguazzini/spillR")
+```
+```r
+library(spillR)
 # --------- experiment with beads ---------
 bc_key <- c(139, 141:156, 158:176)
 sce_bead <- prepData(ss_exp)
