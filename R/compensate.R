@@ -22,9 +22,9 @@
 #' set.seed(23)
 #' tb_real <- generate_real()
 #' tb_bead <- generate_bead()
-#' target_marker <- "A"
-#' spillover_marker <- "B"
-#' spillR::compensate(tb_real, tb_bead, "A", "B")
+#' target_marker <- "Y"
+#' spillover_marker <- "Z"
+#' spillR::compensate(tb_real, tb_bead, target_marker, spillover_marker)
 compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   
   # --------- mixture method ---------
@@ -46,8 +46,8 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   
   tfm <- function(x) asinh(x/5)
   all_markers <- c(target_marker, spillover_markers)
-  y_min <- tb_real %>% pull(all_of(target_marker)) %>% min()
-  y_max <- tb_real %>% pull(all_of(target_marker)) %>% max()
+  y_min <- tb_real %>% dplyr::pull(all_of(target_marker)) %>% min()
+  y_max <- tb_real %>% dplyr::pull(all_of(target_marker)) %>% max()
   
   denoise <- function(y, y_min = min(y), y_max = max(y)) {
     
@@ -94,7 +94,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
     
     tb <- tb_bead %>% 
       dplyr::filter(barcode == marker) %>% 
-      pull(all_of(target_marker)) %>% 
+      dplyr::pull(all_of(target_marker)) %>% 
       denoise(y_min = y_min, y_max = y_max) %>% 
       dplyr::select(y, pmf)
     names(tb) <- c("y", marker)
@@ -111,7 +111,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   
   # add pmf from real cells
   tb_real_pmf <- tb_real %>% 
-    pull(all_of(target_marker)) %>% 
+    dplyr::pull(all_of(target_marker)) %>% 
     denoise(y_min = y_min, y_max = y_max) %>% 
     dplyr::select(y, pmf)
   names(tb_real_pmf) <- c("y", target_marker)
@@ -158,7 +158,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
       ys <- tb_pmf[class == target_marker, ] %>% pull(y)
       tb_real_pmf <- tb_real %>% 
         dplyr::filter(.data[[target_marker]] %in% ys) %>%
-        pull(all_of(target_marker)) %>% 
+        dplyr::pull(all_of(target_marker)) %>% 
         denoise(y_min = y_min, y_max = y_max) %>% 
         dplyr::select(y, pmf)
       
