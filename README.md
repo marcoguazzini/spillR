@@ -5,7 +5,6 @@
 devtools::install_github("marcoguazzini/spillR")
 ```
 ```r
-devtools::install_github("hadley/devtools")
 library(spillR)
 # --------- experiment with beads ---------
 bc_key <- c(139, 141:156, 158:176)
