@@ -47,4 +47,8 @@ sce_spillr <- spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE
      plotScatter(sce_spillr, chs, assay = a))
  plot_grid(plotlist = ps, nrow = 2)
 ```
+# Session Info {.unnumbered}
 
+```{r session_info}
+sessionInfo()
+```

@@ -2,22 +2,25 @@ Package: spillR
 Type: Package
 Title: Spillover compensation for mass cytometry data
 Version: 0.1.0
-Authors@R: c( person("Marco", "Guazzini",email= "marcoguazzini97@outlook.it", role = c("aut", "cre")), person("Alexander", "Reisach" , email="alexander.reisach@gmail.com", role = "aut"), person("Sebastian", "Weichwald",email= "s.weichwald@math.ku.dk", role = "aut"), person("Christof", "Seiler", email= "christof.seiler@maastrichtuniversity.nl", role = "aut"))
-Description: Model-based algorithm to compensate for spillover in mass cytometry data.
-biocViews: 
-	FlowCytometry, ImmunoOncology, MassSpectrometry, 
+Authors@R: c(person("Marco", "Guazzini",email= "m.guazzini@student.maastrichtuniversity.nl", role = c("aut", "cre"), comment=c(ORCID="0009-0007-8111-5772")), person("Alexander", "Reisach" , email="alexander.reisach@gmail.com", role = "aut"), person("Sebastian", "Weichwald",email= "s.weichwald@math.ku.dk", role = "aut"), person("Christof", "Seiler", email= "christof.seiler@maastrichtuniversity.nl", role = "aut"))
+Description: Channel interference in mass cytometry can cause spillover and may result in miscounting of protein markers. 
+ We propose a method that skips the matrix estimation step and work directly with the full bead distributions.
+ We develop a nonparametric finite mixture model, and use the mixture components to estimate the probability of spillover. 
+ We implement this in an R package spillR using expectation-maximization and logistic regression.
+ We design spillR to provide a model-based compensation for mass cytometry data.
+biocViews: FlowCytometry, ImmunoOncology, MassSpectrometry, 
 	Preprocessing, SingleCell, Software, StatisticalMethod, Visualization  
 License: LGPL-3
 Encoding: UTF-8
 LazyData: true
-Suggests: 
-    CATALYST,
-    knitr,
-    rmarkdown,
-    cowplot,
-    testthat (>= 3.0.0)
+Suggests: CATALYST, knitr,
+  rmarkdown,cowplot,
+  testthat (>= 3.0.0)
 Config/testthat/edition: 3
 RoxygenNote: 7.2.3
-Imports: dplyr, magrittr, tibble, tidyselect,SummarizedExperiment, 
-	S4Vectors, flowCore
+Imports: dplyr, magrittr, 
+  tibble, tidyselect,
+  SummarizedExperiment, 
+	S4Vectors, flowCore,
+	stats
 VignetteBuilder: knitr
