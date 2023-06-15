@@ -45,6 +45,6 @@ sce_spillr <- spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE
  chs <- c( "Yb171Di", "Yb173Di")
  ps <- lapply(as, function(a) 
      plotScatter(sce_spillr, chs, assay = a))
- cowplot::plot_grid(plotlist = ps, nrow = 2)
+ plot_grid(plotlist = ps, nrow = 2)
 ```
 
