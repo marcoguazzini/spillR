@@ -14,9 +14,10 @@ Suggests:
     CATALYST,
     knitr,
     rmarkdown,
+    cowplot,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 RoxygenNote: 7.2.3
 Imports: dplyr, magrittr, tibble, tidyselect,SummarizedExperiment, 
-	S4Vectors, flowCore, cowplot
+	S4Vectors, flowCore
 VignetteBuilder: knitr
