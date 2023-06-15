@@ -5,6 +5,8 @@
 #' @import CATALYST
 #' @import flowCore
 #' @import tidyr
+#' @importFrom SummarizedExperiment assay rowData assay<-
+#' @importFrom S4Vectors metadata
 #' @export
 #'
 #' @param sce Single Cell Experiment for the real cells
@@ -47,24 +49,24 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
 
   # --------- experiment with beads ---------
 
-  counts_bead <- t(assay(sce_bead, "counts"))
+  counts_bead <- t(SummarizedExperiment::assay(sce_bead, "counts"))
   counts_bead <- floor(counts_bead)
-  counts_bead <- as_tibble(counts_bead)
+  counts_bead <- tibble::as_tibble(counts_bead)
 
-  channel_names <- rowData(sce_bead)[,"channel_name"]
+  channel_names <- SummarizedExperiment::rowData(sce_bead)[,"channel_name"]
   names(counts_bead) <- channel_names
-  counts_bead <- mutate(counts_bead, barcode = sce_bead$bc_id)
+  counts_bead <-dplyr::mutate(counts_bead, barcode = sce_bead$bc_id)
 
   # what markers spillover into target marker?
-  sm <- metadata(sce_bead)$spillover_matrix
+  sm <- S4Vectors::metadata(sce_bead)$spillover_matrix
 
   # --------- experiment with real cells ---------
 
-  channel_names <- rowData(sce)[, "channel_name"]
-  counts_real <- t(assay(sce, "counts"))
+  channel_names <- SummarizedExperiment::rowData(sce)[, "channel_name"]
+  counts_real <- t(SummarizedExperiment::assay(sce, "counts"))
   counts_real <- floor(counts_real)
   colnames(counts_real) <- channel_names
-  counts_real <- as_tibble(counts_real)
+  counts_real <- tibble::as_tibble(counts_real)
 
   # --------- iterator over markers ---------
 
@@ -79,16 +81,16 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
       spillover_barcodes <- marker_to_barc %>%
         dplyr::filter(marker %in% spillover_markers) %>%
         dplyr::select("barcode")%>%
-        pull()
+        dplyr::pull()
       tb_bead <- counts_bead %>%
         dplyr::filter(barcode %in% spillover_barcodes) %>%
-        dplyr::select(all_of(c(target_marker, "barcode"))) %>%
-        mutate(type = "beads")
+        dplyr::select(dplyr::all_of(c(target_marker, "barcode"))) %>%
+        dplyr::mutate(type = "beads")
 
       tb_real <- counts_real %>%
-        dplyr::select(all_of(target_marker)) %>%
-        mutate(barcode = "none") %>%
-        mutate(type = "real cells")
+        dplyr::select(dplyr::all_of(target_marker)) %>%
+        dplyr::mutate(barcode = "none") %>%
+        dplyr::mutate(type = "real cells")
 
       # rename barcodes to marker names
       for(i in seq(length(spillover_barcodes))) {
@@ -129,11 +131,11 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
 
   # save compensated counts
   c <- ifelse(overwrite, "counts", "compcounts")
-  assay(sce, c, FALSE) <- t(data)
+  SummarizedExperiment::assay(sce, c, FALSE) <- t(data)
 
   # save compensated transformed counts
   c <- ifelse(overwrite, "exprs", "compexprs")
-  assay(sce, c, FALSE) <- t(tfm(data))
+  SummarizedExperiment::assay(sce, c, FALSE) <- t(tfm(data))
 
   return(sce)
 
