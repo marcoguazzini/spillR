@@ -11,9 +11,10 @@ compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 
 \item{sce_bead}{Single Cell Experiment for the bead experiment}
 
-\item{marker_to_barc}{Table that maps the marker to the barcode in the beads experiment}
+\item{marker_to_barc}{Table for barcodes in the beads experiment}
 
-\item{overwrite}{logical; if TRUE data are overwritten if FALSE data are saved in new columns}
+\item{overwrite}{logical; if TRUE data are overwritten if FALSE 
+data are saved in new columns}
 }
 \value{
 A list of class \code{spillr} containing
@@ -40,6 +41,7 @@ as_tibble \%>\%
 dplyr::filter(is_bc == TRUE) \%>\%
 mutate(barcode = bc_key) \%>\%
 dplyr::select(marker = channel_name, barcode)
-sce_spillr <- spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
+sce_spillr <- 
+spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 sce_spillr
 }
