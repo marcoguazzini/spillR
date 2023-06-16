@@ -1,10 +1,10 @@
 #' Compute spillover probability and correct for spillover
 #'
-#' @import magrittr
 #' @import dplyr
 #' @import CATALYST
-#' @import flowCore
-#' @import tidyr
+#' @importFrom magrittr %<>% %>%
+#' @importFrom flowCore %in%
+#' @importFrom stats binomial coef glm rbinom rpois
 #' @importFrom SummarizedExperiment assay rowData assay<-
 #' @importFrom S4Vectors metadata
 #' @export

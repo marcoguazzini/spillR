@@ -1,6 +1,6 @@
 #' Compute spillover probability and correct for spillover
 #'
-#' @import magrittr
+#' @importFrom magrittr %<>% %>%
 #' @import dplyr
 #' @import tidyselect
 #' @export
