@@ -12,7 +12,7 @@ biocViews: FlowCytometry, ImmunoOncology, MassSpectrometry,
 	Preprocessing, SingleCell, Software, StatisticalMethod, Visualization  
 License: LGPL-3
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 Suggests: CATALYST, knitr,
   rmarkdown,cowplot,
   testthat (>= 3.0.0)
@@ -24,4 +24,3 @@ Imports: dplyr, magrittr,
 	S4Vectors, flowCore,
 	stats
 VignetteBuilder: knitr
-LazyData: false

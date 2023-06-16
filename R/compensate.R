@@ -203,7 +203,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   )
   tb_compensate %<>% dplyr::mutate(corrected = ifelse(spill == 1, NA, .data[[target_marker]]))
   
-  names(tb_compensate)[1] = "uncorrected"
+  names(tb_compensate)[1] <- "uncorrected"
   
   # postprocess spillover probabilities
   tb_spill_prob %<>% dplyr::mutate(y_tfm = tfm(.data[[target_marker]]))
