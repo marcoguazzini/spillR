@@ -18,16 +18,10 @@
 #'   \item{tb_bead}{input bead cells}
 #'   \item{target_marker}{input marker in real experiment}
 #'   \item{spillover_markers}{input markers in bead experiment}
-#'
-#' @examples
-#' set.seed(23)
-#' tb_real <- generate_real()
-#' tb_bead <- generate_bead()
-#' target_marker <- "Y"
-#' spillover_marker <- "Z"
-#' spillR::compensate(tb_real, tb_bead, target_marker, spillover_marker)
 compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
+    
     # --------- mixture method ---------
+    
     # option 1: fit polynomial poisson regression
     # degree_bead <- 4
     # degree_real <- 8
@@ -45,22 +39,21 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
     
     tfm <- function(x) asinh(x/5)
     all_markers <- c(target_marker, spillover_markers)
-    y_min <- tb_real %>% 
+    y_min <- tb_real %>%
         dplyr::pull(tidyselect::all_of(target_marker)) %>% min()
-    y_max <- tb_real %>% 
+    y_max <- tb_real %>%
         dplyr::pull(tidyselect::all_of(target_marker)) %>% max()
     
     denoise <- function(.y, y_min = min(.y), y_max = max(.y)) {
         
         # frequency table
-        tb_obsv <- tibble("y" = .y) %>% 
+        tb_obsv <- tibble("y"=.y) %>% 
             dplyr::group_by(.data$y) %>% dplyr::tally()
         y_min_obsv <- min(tb_obsv$y)
         y_max_obsv <- max(tb_obsv$y)
         tb_pred <- tibble("y" = y_min:y_max)
         tb_pred %<>% dplyr::left_join(tb_obsv, by = "y")
         
-        # padding with zero outside of data support
         tb_pred %<>%
             dplyr::mutate(
                 n = ifelse(.data$y > y_max_obsv | .data$y < y_min_obsv, 0, n))
@@ -150,16 +143,15 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
         pi <- colSums(post_M)/nrow(post_M)
         
         # stochastic EM: 
-        # assigns each observation to a class with 
-        # the highest posterior probability
-        # class <- apply(post_M, 1, 
-        # function(Mi) sample(colnames(post_M), size = 1, prob = Mi))
+        # assigns each observation to a class with the highest posterior probability
+        #class <- apply(post_M, 1, function(Mi) sample(colnames(post_M), size = 1, prob = Mi))
         # categorical EM:
         # assigns each observation randomly based on posterior probabilities
         class <- all_markers[apply(post_M, 1, which.max)]
         
         # update pmf from real cells
         if(sum(class == target_marker) > 0) {
+            
             ys <- tb_pmf[class == target_marker, ] %>% dplyr::pull(y)
             y <- tb_real %>% 
                 dplyr::filter(.data[[target_marker]] %in% ys) %>%
@@ -172,7 +164,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
             # if no signal, then use uniform distribution  
             tb_real_pmf <- tb_beads_pmf %>% 
                 dplyr::select("y") %>% 
-                dplyr::mutate(pmf = 1/nrow(tb_beads_pmf))
+                mutate(pmf = 1/nrow(tb_beads_pmf))
             
         }
         names(tb_real_pmf) <- c("y", target_marker)
@@ -185,7 +177,6 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
     }
     
     # --------- spillover probability curve ---------
-    
     # calculate posterior spillover probability for each cell
     M <- tb_pmf %>% 
         dplyr::select(tidyselect::all_of(all_markers)) %>% as.matrix()
@@ -206,13 +197,12 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
                        prob = tb_compensate$spill_prob)
     )
     tb_compensate %<>% 
-        dplyr::mutate(
-            corrected = ifelse(.data$spill == 1, NA, .data[[target_marker]]))
+        dplyr::mutate(corrected = ifelse(.data$spill == 1, NA, .data[[target_marker]]))
     
-    names(tb_compensate)[1] <- "uncorrected"
+    names(tb_compensate)[1] = "uncorrected"
     
     # postprocess spillover probabilities
-    tb_spill_prob %<>% dplyr::mutate(y_tfm = tfm(.data[[target_marker]]))
+    tb_spill_prob %<>% mutate(y_tfm = tfm(.data[[target_marker]]))
     fit <- glm(spill_prob ~ y_tfm, family = binomial, data = tb_spill_prob)
     inverse_logit <- function(fit, x) {
         hat <- coef(fit)[1] + coef(fit)[2]*x

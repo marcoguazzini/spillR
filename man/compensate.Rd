@@ -28,11 +28,3 @@ A list of class \code{spillr} containing
 \description{
 Compute spillover probability and correct for spillover
 }
-\examples{
-set.seed(23)
-tb_real <- generate_real()
-tb_bead <- generate_bead()
-target_marker <- "Y"
-spillover_marker <- "Z"
-compensate(tb_real, tb_bead, target_marker, spillover_marker)
-}

@@ -41,12 +41,8 @@ marker_to_barc <-
 sce_spillr <- 
     spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 
-# --------- 2d histogram from spillR ---------
-as <- c("counts", "exprs", "compcounts", "compexprs")
-chs <- c( "Yb171Di", "Yb173Di")
-ps <- lapply(as, function(a) 
-    plotScatter(sce_spillr, chs, assay = a))
-plot_grid(plotlist = ps, nrow = 2)
+# --------- plot with spillR ---------
+ spillR::plotDiagnostics(sce_spillr, "Yb173Di")
 ```
 # Session Info {.unnumbered}
 

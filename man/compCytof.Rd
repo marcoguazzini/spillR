@@ -17,10 +17,8 @@ compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 data are saved in new columns}
 }
 \value{
-A list of class \code{spillr} containing
-  \item{tb_compensate}{corrected real cells}
-  \item{tb_spill_prob}{probability curve}
-  \item{target_marker}{input marker in real experiment}
+Compensates the input \code{\link{SummarizedExperiment}} or, 
+if \code{x} is a character string, all FCS files in the specified location.
 }
 \description{
 Compute spillover probability and correct for spillover
