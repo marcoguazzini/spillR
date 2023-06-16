@@ -14,6 +14,5 @@ Generate dataset for vignettes and simulation studies
 }
 \examples{
 set.seed(23)
-df <- generate_bead()
-df
+generate_bead()
 }

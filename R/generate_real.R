@@ -7,8 +7,7 @@
 #'
 #' @examples
 #' set.seed(23)
-#' df <- generate_real()
-#' df
+#' generate_real()
 generate_real <- function(){
   n_real <-10000
   lambda_real <- 100

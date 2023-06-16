@@ -1,10 +1,9 @@
 #' Compute spillover probability and correct for spillover
 #'
-#' @importFrom magrittr %<>% %>%
 #' @import dplyr
-#' @import tidyselect
-#' @export
-#'
+#' @importFrom magrittr %>% %<>%
+#' @importFrom tidyselect all_of
+#' @importFrom stats binomial coef glm rbinom rpois
 #'
 #' @param tb_real Data frame or tibble with proteins counts of real experiment
 #' @param tb_bead Data frame or tibble with proteins counts of bead experiment
@@ -19,14 +18,6 @@
 #'   \item{tb_bead}{input bead cells}
 #'   \item{target_marker}{input marker in real experiment}
 #'   \item{spillover_markers}{input markers in bead experiment}
-#'
-#' @examples
-#' set.seed(23)
-#' tb_real <- generate_real()
-#' tb_bead <- generate_bead()
-#' target_marker <- "Y"
-#' spillover_marker <- "Z"
-#' spillR::compensate(tb_real, tb_bead, target_marker, spillover_marker)
 compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   
   # --------- mixture method ---------
@@ -53,19 +44,19 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   y_max <- tb_real %>% 
     dplyr::pull(tidyselect::all_of(target_marker)) %>% max()
   
-  denoise <- function(y, y_min = min(y), y_max = max(y)) {
+  denoise <- function(.y, y_min = min(.y), y_max = max(.y)) {
     
     # frequency table
-    tb_obsv <- tibble(y) %>% 
-      dplyr::group_by(y) %>% dplyr::tally()
+    tb_obsv <- tibble("y" = .y) %>% 
+      dplyr::group_by(.data$y) %>% dplyr::tally()
     y_min_obsv <- min(tb_obsv$y)
     y_max_obsv <- max(tb_obsv$y)
-    tb_pred <- tibble(y = y_min:y_max)
+    tb_pred <- tibble("y" = y_min:y_max)
     tb_pred %<>% dplyr::left_join(tb_obsv, by = "y")
     
     # padding with zero outside of data support
     tb_pred %<>%
-      dplyr::mutate(n = ifelse(y > y_max_obsv | y < y_min_obsv, 0, n))
+      dplyr::mutate(n = ifelse(.data$y > y_max_obsv | .data$y < y_min_obsv, 0, n))
     
     # option 1
     # fit <- glm(n ~ poly(y, degree = degree, raw = TRUE),
@@ -85,24 +76,23 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
     
     # option 4
     tb_pred$n[is.na(tb_pred$n)] <- 0
-    tb_pred %<>% dplyr::mutate(lambda = n)
     
     # normalize
-    tb_pred %>% dplyr::mutate(pmf = lambda/sum(tb_pred$lambda))
+    tb_pred %>% dplyr::mutate("pmf" = n/sum(tb_pred$n))
     
   }
   
   # support for target marker
-  tb_beads_pmf <- tibble(y = y_min:y_max)
+  tb_beads_pmf <- tibble("y" = y_min:y_max)
   
   # collect pmf from beads
   for(marker in spillover_markers) {
     
-    tb <- tb_bead %>% 
-      dplyr::filter(barcode == marker) %>% 
-      dplyr::pull(tidyselect::all_of(target_marker)) %>% 
-      denoise(y_min = y_min, y_max = y_max) %>% 
-      dplyr::select(y, pmf)
+    y <- tb_bead %>% 
+      dplyr::filter(.data$barcode == marker) %>% 
+      dplyr::pull(tidyselect::all_of(target_marker))
+    tb <- denoise(y, y_min = y_min, y_max = y_max) %>% 
+      dplyr::select("y", "pmf")
     names(tb) <- c("y", marker)
     tb_beads_pmf %<>% dplyr::left_join(tb, by = "y")
     
@@ -116,10 +106,10 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   names(pi) <- all_markers
   
   # add pmf from real cells
-  tb_real_pmf <- tb_real %>% 
-    dplyr::pull(tidyselect::all_of(target_marker)) %>% 
-    denoise(y_min = y_min, y_max = y_max) %>% 
-    dplyr::select(y, pmf)
+  y <- tb_real %>% 
+    dplyr::pull(tidyselect::all_of(target_marker))
+  tb_real_pmf <- denoise(y, y_min = y_min, y_max = y_max) %>% 
+    dplyr::select("y", "pmf")
   names(tb_real_pmf) <- c("y", target_marker)
   
   # join beads and real
@@ -165,17 +155,17 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
     if(sum(class == target_marker) > 0) {
       
       ys <- tb_pmf[class == target_marker, ] %>% dplyr::pull(y)
-      tb_real_pmf <- tb_real %>% 
+      y <- tb_real %>% 
         dplyr::filter(.data[[target_marker]] %in% ys) %>%
-        dplyr::pull(tidyselect::all_of(target_marker)) %>% 
-        denoise(y_min = y_min, y_max = y_max) %>% 
-        dplyr::select(y, pmf)
+        dplyr::pull(tidyselect::all_of(target_marker))
+      tb_real_pmf <- denoise(y, y_min = y_min, y_max = y_max) %>% 
+        dplyr::select("y", "pmf")
       
     } else {
       
       # if no signal, then use uniform distribution  
       tb_real_pmf <- tb_beads_pmf %>% 
-        dplyr::select(y) %>% 
+        dplyr::select("y") %>% 
         dplyr::mutate(pmf = 1/nrow(tb_beads_pmf))
       
     }
@@ -197,11 +187,8 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   post_M <- PI * M
   post_M <- post_M/rowSums(post_M)
   spill_prob <- 1-post_M[,target_marker]
-  tb_spill_prob <- dplyr::select(tb_pmf, y) %>% 
-    dplyr::mutate(spill_prob = spill_prob)
-  tb_spill_prob %<>% 
-    dplyr::mutate(
-      spill_prob = dplyr::if_else(is.na(spill_prob), 0, spill_prob))
+  tb_spill_prob <- dplyr::select(tb_pmf, "y") %>% 
+    mutate(spill_prob = if_else(is.na(spill_prob), 0, spill_prob))
   names(tb_spill_prob) <- c(target_marker, "spill_prob")
   
   # compensate
@@ -213,7 +200,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
                    prob = tb_compensate$spill_prob)
   )
   tb_compensate %<>% 
-    dplyr::mutate(corrected = ifelse(spill == 1, NA, .data[[target_marker]]))
+    dplyr::mutate(corrected = ifelse(.data$spill == 1, NA, .data[[target_marker]]))
   
   names(tb_compensate)[1] <- "uncorrected"
   
@@ -225,7 +212,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
     1/(1+exp(-hat))
   }
   tb_spill_prob %<>% 
-    dplyr::mutate(spill_prob_smooth = inverse_logit(fit, y_tfm))
+    dplyr::mutate(spill_prob_smooth = inverse_logit(fit, .data$y_tfm))
 
   # return spillr object
   res <- NULL

@@ -41,7 +41,5 @@ as_tibble \%>\%
 dplyr::filter(is_bc == TRUE) \%>\%
 mutate(barcode = bc_key) \%>\%
 dplyr::select(marker = channel_name, barcode)
-sce_spillr <- 
 spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
-sce_spillr
 }

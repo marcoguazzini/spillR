@@ -23,16 +23,33 @@ Description: Channel interference in mass cytometry can cause spillover
              expectation-maximization and logistic regression.
              We design spillR to provide a model-based compensation 
              for mass cytometry data.
-biocViews: FlowCytometry, ImmunoOncology, MassSpectrometry, Preprocessing, 
-           SingleCell, 
-           Software, StatisticalMethod, Visualization, Regression  
+biocViews: 
+  FlowCytometry, 
+  ImmunoOncology, 
+  MassSpectrometry, 
+  Preprocessing, 
+  SingleCell, 
+  Software, 
+  StatisticalMethod, 
+  Visualization, 
+  Regression  
 License: LGPL-3
 Encoding: UTF-8
 LazyData: false
 Config/testthat/edition: 3
 RoxygenNote: 7.2.3
-Imports: dplyr, magrittr, tibble, tidyselect,
-         SummarizedExperiment, S4Vectors, flowCore, stats, CATALYST
-Suggests: knitr, rmarkdown, cowplot, 
-          testthat (>= 3.0.0)
+Imports: 
+  dplyr, 
+  magrittr, 
+  tibble, 
+  tidyselect,
+  SummarizedExperiment, 
+  S4Vectors, 
+  stats, 
+  CATALYST
+Suggests: 
+  knitr, 
+  rmarkdown, 
+  cowplot, 
+  testthat
 VignetteBuilder: knitr

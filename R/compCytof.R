@@ -3,7 +3,6 @@
 #' @import dplyr
 #' @import CATALYST
 #' @importFrom magrittr %<>% %>%
-#' @importFrom flowCore %in%
 #' @importFrom stats binomial coef glm rbinom rpois
 #' @importFrom SummarizedExperiment assay rowData assay<-
 #' @importFrom S4Vectors metadata
@@ -36,9 +35,7 @@
 #' dplyr::filter(is_bc == TRUE) %>%
 #' mutate(barcode = bc_key) %>%
 #' dplyr::select(marker = channel_name, barcode)
-#' sce_spillr <- 
 #' spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
-#' sce_spillr
 compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
   if(!("marker" %in% colnames(marker_to_barc)))
     stop("marker_to_barc needs to have column marker")
@@ -81,11 +78,11 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
 
       spillover_markers <- names(which(sm[,target_marker] > 0))
       spillover_barcodes <- marker_to_barc %>%
-        dplyr::filter(marker %in% spillover_markers) %>%
+        dplyr::filter(.data$marker %in% spillover_markers) %>%
         dplyr::select("barcode")%>%
         dplyr::pull()
       tb_bead <- counts_bead %>%
-        dplyr::filter(barcode %in% spillover_barcodes) %>%
+        dplyr::filter(.data$barcode %in% spillover_barcodes) %>%
         dplyr::select(dplyr::all_of(c(target_marker, "barcode"))) %>%
         dplyr::mutate(type = "beads")
 

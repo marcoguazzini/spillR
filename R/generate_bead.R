@@ -7,8 +7,7 @@
 #'
 #' @examples
 #' set.seed(23)
-#' df <- generate_bead()
-#' df
+#' generate_bead()
 generate_bead <- function(){
   n_bead <- 1000
   lambda_bead  <- 70
