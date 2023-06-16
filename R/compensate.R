@@ -143,8 +143,10 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
         pi <- colSums(post_M)/nrow(post_M)
         
         # stochastic EM: 
-        # assigns each observation to a class with the highest posterior probability
-        #class <- apply(post_M, 1, function(Mi) sample(colnames(post_M), size = 1, prob = Mi))
+        # assigns each observation to a class 
+        #with the highest posterior probability
+        #class <- apply(
+        #post_M, 1, function(Mi) sample(colnames(post_M), size = 1, prob = Mi))
         # categorical EM:
         # assigns each observation randomly based on posterior probabilities
         class <- all_markers[apply(post_M, 1, which.max)]
@@ -197,9 +199,10 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
                        prob = tb_compensate$spill_prob)
     )
     tb_compensate %<>% 
-        dplyr::mutate(corrected = ifelse(.data$spill == 1, NA, .data[[target_marker]]))
+        dplyr::mutate(corrected = ifelse(
+            .data$spill == 1, NA, .data[[target_marker]]))
     
-    names(tb_compensate)[1] = "uncorrected"
+    names(tb_compensate)[1] <- "uncorrected"
     
     # postprocess spillover probabilities
     tb_spill_prob %<>% mutate(y_tfm = tfm(.data[[target_marker]]))

@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, warning=FALSE}
 library(spillR)
 library(CATALYST)
 library(dplyr)
@@ -41,8 +41,15 @@ marker_to_barc <-
 sce_spillr <- 
     spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 
+# --------- 2d histogram from spillR (for vignette, not for paper) -------
+as <- c("counts", "exprs", "compcounts", "compexprs")
+chs <- c( "Yb171Di", "Yb173Di")
+ps <- lapply(as, function(a) 
+    plotScatter(sce_spillr, chs, assay = a))
+plot_grid(plotlist = ps, nrow = 2)
 # --------- plot with spillR ---------
- spillR::plotDiagnostics(sce_spillr, "Yb173Di")
+spillR::plotDiagnostics(sce_spillr, "Yb173Di")
+
 ```
 # Session Info {.unnumbered}
 

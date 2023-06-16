@@ -72,7 +72,8 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
                                dplyr::filter(
                                    .data$barcode %in% spillover_barcodes) %>% 
                                dplyr::select(
-                                   dplyr::all_of(c(target_marker, "barcode"))) %>% 
+                                   dplyr::all_of(
+                                       c(target_marker, "barcode"))) %>% 
                                dplyr::mutate(type = "beads")
                            tb_real <- counts_real %>% 
                                dplyr::select(all_of(target_marker)) %>%
