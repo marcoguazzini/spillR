@@ -93,7 +93,7 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
         dplyr::mutate(type = "real cells")
 
       # rename barcodes to marker names
-      for(i in seq(length(spillover_barcodes))) {
+      for(i in seq_len(length(spillover_barcodes))) {
         ids <- tb_bead$barcode == spillover_barcodes[i]
         tb_bead[ids, "barcode"] <- spillover_markers[i]
       }
@@ -118,7 +118,7 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
   # with the key we can check whether the
   data <- matrix(NA, nrow = nrow(counts_real), ncol = length(channel_names))
   data <- data.frame(data)
-  for(i in 1:length(channel_names)){
+  for(i in seq_len(length(channel_names))){
     if(channel_names[i] %in% channels_out){
       data[,i] <- counts_real[,channel_names[i]]
     }
