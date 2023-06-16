@@ -11,8 +11,9 @@
 #'
 #' @param sce Single Cell Experiment for the real cells
 #' @param sce_bead Single Cell Experiment for the bead experiment
-#' @param marker_to_barc Table that maps the marker to the barcode in the beads experiment
-#' @param overwrite logical; if TRUE data are overwritten if FALSE data are saved in new columns
+#' @param marker_to_barc Table for barcodes in the beads experiment
+#' @param overwrite logical; if TRUE data are overwritten if FALSE 
+#'   data are saved in new columns
 #'
 #' @return A list of class \code{spillr} containing
 #'   \item{tb_compensate}{corrected real cells}
@@ -35,7 +36,8 @@
 #' dplyr::filter(is_bc == TRUE) %>%
 #' mutate(barcode = bc_key) %>%
 #' dplyr::select(marker = channel_name, barcode)
-#' sce_spillr <- spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
+#' sce_spillr <- 
+#' spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 #' sce_spillr
 compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
   if(!("marker" %in% colnames(marker_to_barc)))
@@ -108,7 +110,8 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
 
   # saving the compensated data in a dataframe
   # adding the column for the markers not present in the beads experiment
-  # in the beads experiment they do not attached three markers "Ba138Di", "Ce140Di", "Gd157Di"
+  # in the beads experiment they do not attached three markers
+  # "Ba138Di", "Ce140Di", "Gd157Di"
   # in general we can check the key barcode attached on the beads experiment
   # used channel in bead experiments
   used_channel <- sce_bead@rowRanges@elementMetadata@listData[["is_bc"]]
@@ -123,7 +126,8 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
       data[,i] <- counts_real[,channel_names[i]]
     }
     else {
-      data[,i] <- unlist(fit_list[[channel_names[i]]]$tb_compensate[,"corrected"])
+      data[,i] <- 
+        unlist(fit_list[[channel_names[i]]]$tb_compensate[,"corrected"])
     }
   }
 
