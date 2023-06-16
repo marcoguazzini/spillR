@@ -46,7 +46,9 @@ Imports:
   SummarizedExperiment, 
   S4Vectors, 
   stats, 
-  CATALYST
+  CATALYST,
+  ggplot2,
+  tidyr
 Suggests: 
   knitr, 
   rmarkdown, 
