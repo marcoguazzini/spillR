@@ -30,7 +30,7 @@ plotDiagnostics <- function(sce, ch) {
     names(compexprs) <- rowData(sce)$channel_name
     
     before_after <- tibble(
-        cell = len_seq(nrow(exprs)),
+        cell = seq_len(nrow(exprs)),
         before = exprs %>% pull(ch),
         after = compexprs %>% pull(ch)
     )

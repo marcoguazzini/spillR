@@ -25,7 +25,7 @@
 #' tb_bead <- generate_bead()
 #' target_marker <- "Y"
 #' spillover_marker <- "Z"
-#' compensate(tb_real, tb_bead, target_marker, spillover_marker)
+#' spillR::compensate(tb_real, tb_bead, target_marker, spillover_marker)
 compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
     # --------- mixture method ---------
     # option 1: fit polynomial poisson regression
