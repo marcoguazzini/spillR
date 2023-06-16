@@ -127,7 +127,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
   convergence <- matrix(nrow = n_iter, ncol = length(pi)+1)
   colnames(convergence) <- c("iteration", names(pi))
   
-  for(i in 1:n_iter) {
+  for(i in seq_len(n_iter)) {
     # remove counts without any signal
     total <- rowSums(dplyr::select(tb_pmf, tidyselect::all_of(all_markers)))
     tb_pmf %<>% dplyr::mutate(total = total)
