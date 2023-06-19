@@ -84,16 +84,15 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
                            for(i in seq_len(length(spillover_barcodes))) {
                                ids <- tb_bead$barcode == spillover_barcodes[i]
                                tb_bead[ids, "barcode"] <- spillover_markers[i]
-                           }
+                               }
                            spillover_markers <- 
                                setdiff(spillover_markers, target_marker)
                            compensate(tb_real, 
                                       tb_bead, 
                                       target_marker, 
                                       spillover_markers)
-                           
-                       }
-    )
+                           }
+                       )
     names(fit_list) <- rownames(sm)
     
     # --------- save results in SingleCellExperiment class ---------
@@ -103,7 +102,7 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
     channels_out <- channel_names[used_channel == FALSE]
     
     # prepare new assay matrices
-    data <- matrix(NA, nrow = nrow(counts_real), ncol = length(channel_names))
+    data <- matrix(NA, nrow=nrow(counts_real), ncol=length(channel_names))
     data <- data.frame(data)
     colnames(data) <- channel_names
     spillprob <- data
@@ -115,16 +114,16 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
             # no correct
             data[,i] <- counts_real[,channel_names[i]]
             }
-        else {
+        else
+            {
             # keep the corrected counts
             tb_compensate <- fit_list[[channel_names[i]]]$tb_compensate
             data[,i]      <- tb_compensate$corrected
             
             # keep the smoothed spillover probability for diagnostic plots
             spillprob[,i] <- tb_compensate$spill_prob
-            
+            }
         }
-    }
     
     # save compensated counts
     c <- ifelse(overwrite, "counts", "compcounts")
