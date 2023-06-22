@@ -42,7 +42,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
         tb_pred$n[is.na(tb_pred$n)] <- 0
         # normalize
         tb_pred %>% dplyr::mutate("pmf"=n/sum(tb_pred$n))
-        }
+    }
     # support for target marker
     tb_beads_pmf <- tibble("y"=y_min:y_max)
     # collect pmf from beads
@@ -55,7 +55,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
             dplyr::select("y", "pmf")
         names(tb) <- c("y", marker)
         tb_beads_pmf %<>% dplyr::left_join(tb, by="y")
-        }
+    }
     
     # --------- step 1: initialize ---------
     # prior probability
@@ -114,15 +114,15 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
                 dplyr::pull(tidyselect::all_of(target_marker))
             tb_real_pmf <- denoise(y, y_min=y_min, y_max=y_max) %>% 
                 dplyr::select("y", "pmf")
-            } 
+        } 
         else 
-            {
+        {
             
             # if no signal, then use uniform distribution  
             tb_real_pmf <- tb_beads_pmf %>% 
                 dplyr::select("y") %>% 
                 mutate(pmf=1/nrow(tb_beads_pmf))
-            }
+        }
         names(tb_real_pmf) <- c("y", target_marker)
         
         # update join
@@ -130,9 +130,9 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
         
         # keep track
         convergence[i,] <- c(i, pi)
-        }
+    }
     
-     # --------- spillover probability curve ---------
+    # --------- spillover probability curve ---------
     # calculate posterior spillover probability for each cell
     M <- tb_pmf %>% 
         dplyr::select(tidyselect::all_of(all_markers)) %>% as.matrix()
@@ -150,7 +150,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
         spill = rbinom(n=nrow(tb_compensate), 
                        size=1, 
                        prob=tb_compensate$spill_prob)
-        )
+    )
     tb_compensate %<>% 
         dplyr::mutate(corrected=ifelse(
             .data$spill == 1, NA, .data[[target_marker]]))
@@ -163,7 +163,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
     inverse_logit <- function(fit, x) {
         hat <- coef(fit)[1] + coef(fit)[2]*x
         1/(1+exp(-hat))
-        }
+    }
     tb_spill_prob %<>% 
         dplyr::mutate(spill_prob_smooth=inverse_logit(fit, .data$y_tfm))
     # return spillr object

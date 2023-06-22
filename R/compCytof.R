@@ -12,10 +12,11 @@
 #' @param sce_bead Single Cell Experiment for the bead experiment
 #' @param marker_to_barc Table for barcodes in the beads experiment
 #' @param overwrite logical; if TRUE data are overwritten if FALSE 
-#'   data are saved in new columns
+#'     data are saved in new columns
 #'
 #' @return Compensates the input \code{\link{SummarizedExperiment}} or, 
-#' if \code{x} is a character string, all FCS files in the specified location.
+#'     if \code{x} is a character string, 
+#'     all FCS files in the specified location.
 #'
 #' @examples
 #' library(CATALYST)
@@ -29,10 +30,10 @@
 #' data(mp_cells, package = "CATALYST")
 #' sce <- prepData(mp_cells)
 #' marker_to_barc <- rowData(sce_bead)[,c("channel_name", "is_bc")] %>%
-#' as_tibble %>%
-#' dplyr::filter(is_bc == TRUE) %>%
-#' mutate(barcode = bc_key) %>%
-#' dplyr::select(marker = channel_name, barcode)
+#'     as_tibble %>%
+#'     dplyr::filter(is_bc == TRUE) %>%
+#'     mutate(barcode = bc_key) %>%
+#'     dplyr::select(marker = channel_name, barcode)
 #' spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
     if(!("marker" %in% colnames(marker_to_barc)))
@@ -84,15 +85,15 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
                            for(i in seq_len(length(spillover_barcodes))) {
                                ids <- tb_bead$barcode == spillover_barcodes[i]
                                tb_bead[ids, "barcode"] <- spillover_markers[i]
-                               }
+                           }
                            spillover_markers <- 
                                setdiff(spillover_markers, target_marker)
                            compensate(tb_real, 
                                       tb_bead, 
                                       target_marker, 
                                       spillover_markers)
-                           }
-                       )
+                       }
+    )
     names(fit_list) <- rownames(sm)
     
     # --------- save results in SingleCellExperiment class ---------
@@ -106,24 +107,22 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE){
     data <- data.frame(data)
     colnames(data) <- channel_names
     spillprob <- data
-    
     rep(NA, ncol(data))
-    
     for(i in seq_len(length(channel_names))){
         if(channel_names[i] %in% channels_out){
             # no correct
             data[,i] <- counts_real[,channel_names[i]]
-            }
+        }
         else
-            {
+        {
             # keep the corrected counts
             tb_compensate <- fit_list[[channel_names[i]]]$tb_compensate
             data[,i]      <- tb_compensate$corrected
             
             # keep the smoothed spillover probability for diagnostic plots
             spillprob[,i] <- tb_compensate$spill_prob
-            }
         }
+    }
     
     # save compensated counts
     c <- ifelse(overwrite, "counts", "compcounts")

@@ -26,10 +26,10 @@
 #' data(mp_cells, package = "CATALYST")
 #' sce <- prepData(mp_cells)
 #' marker_to_barc <- rowData(sce_bead)[,c("channel_name", "is_bc")] %>%
-#' as_tibble %>%
-#' dplyr::filter(is_bc == TRUE) %>%
-#' mutate(barcode = bc_key) %>%
-#' dplyr::select(marker = channel_name, barcode)
+#'     as_tibble %>%
+#'     dplyr::filter(is_bc == TRUE) %>%
+#'     mutate(barcode = bc_key) %>%
+#'     dplyr::select(marker = channel_name, barcode)
 #' sce <- spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 #' plotDiagnostics(sce, "Yb173Di")
 plotDiagnostics <- function(sce, ch) {
@@ -51,7 +51,7 @@ plotDiagnostics <- function(sce, ch) {
         cell=seq_len(nrow(exprs)),
         before=exprs %>% pull(ch),
         after=compexprs %>% pull(ch)
-        )
+    )
     p_before_after <- before_after %>% 
         pivot_longer(-.data$cell, names_to="correction") %>% 
         mutate(
@@ -59,7 +59,7 @@ plotDiagnostics <- function(sce, ch) {
                 .data$correction, levels=c('before', 'after'))) %>%
         ggplot(aes(
             .data$value, color=.data$correction, linetype=.data$correction)
-            ) + 
+        ) + 
         geom_freqpoly(alpha=1.0, bins=50) +
         scale_color_manual(values=c('#00BFC4', '#F8766D')) +
         scale_linetype_manual(values=c('solid', 'dashed')) +
@@ -80,6 +80,6 @@ plotDiagnostics <- function(sce, ch) {
     list(
         p_before_after=p_before_after, 
         p_spill=p_spill
-        )
+    )
     
 }
