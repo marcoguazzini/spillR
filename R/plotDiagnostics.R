@@ -63,7 +63,8 @@ plotDiagnostics <- function(sce, ch) {
         geom_freqpoly(alpha=1.0, bins=50) +
         scale_color_manual(values=c('#00BFC4', '#F8766D')) +
         scale_linetype_manual(values=c('solid', 'dashed')) +
-        xlab(paste0("tfm(", ch, ")"))
+        xlab(paste0("tfm(", ch, ")")) +
+        ggtitle("Spillover Compensation on Real Cells")
     
     # diagnostic plot for spillover estimate
     tb_bead <- metadata(sce)$beads_distr[[ch]]
@@ -75,7 +76,8 @@ plotDiagnostics <- function(sce, ch) {
                   aes(tfm(.data[[ch]]), .data$spill_prob_smooth), 
                   color="black", 
                   linetype="longdash") + 
-        ylab("density")
+        ylab("density")+
+        ggtitle("Beads Experiment")
     
     list(
         p_before_after=p_before_after, 
