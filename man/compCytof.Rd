@@ -18,7 +18,8 @@ data are saved in new columns}
 }
 \value{
 Compensates the input \code{\link{SummarizedExperiment}} or, 
-if \code{x} is a character string, all FCS files in the specified location.
+    if \code{x} is a character string, 
+    all FCS files in the specified location.
 }
 \description{
 Compute spillover probability and correct for spillover
@@ -35,9 +36,9 @@ sce_bead <- computeSpillmat(sce_bead)
 data(mp_cells, package = "CATALYST")
 sce <- prepData(mp_cells)
 marker_to_barc <- rowData(sce_bead)[,c("channel_name", "is_bc")] \%>\%
-as_tibble \%>\%
-dplyr::filter(is_bc == TRUE) \%>\%
-mutate(barcode = bc_key) \%>\%
-dplyr::select(marker = channel_name, barcode)
+    as_tibble \%>\%
+    dplyr::filter(is_bc == TRUE) \%>\%
+    mutate(barcode = bc_key) \%>\%
+    dplyr::select(marker = channel_name, barcode)
 spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 }
