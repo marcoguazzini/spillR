@@ -23,10 +23,9 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
     # no hyperparameters
     tfm <- function(x) asinh(x/5)
     all_markers <- c(target_marker, spillover_markers)
-    y_min <- tb_real %>%
-        dplyr::pull(tidyselect::all_of(target_marker)) %>% min()
-    y_max <- tb_real %>%
-        dplyr::pull(tidyselect::all_of(target_marker)) %>% max()
+    y_target <- tb_real %>% dplyr::pull(.data[[target_marker]])
+    y_min <- min(y_target)
+    y_max <- max(y_target)
     denoise <- function(.y, y_min=min(.y), y_max=max(.y)) {
         # frequency table
         tb_obsv <- tibble("y"=.y) %>% 
@@ -38,7 +37,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
         tb_pred %<>%
             dplyr::mutate(
                 n = ifelse(.data$y > y_max_obsv | .data$y < y_min_obsv, 0, n))
-        # option 4
+        # non parametric density estimates
         tb_pred$n[is.na(tb_pred$n)] <- 0
         # normalize
         tb_pred %>% dplyr::mutate("pmf"=n/sum(tb_pred$n))

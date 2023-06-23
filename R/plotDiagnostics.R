@@ -56,11 +56,11 @@ plotDiagnostics <- function(sce, ch) {
         pivot_longer(-.data$cell, names_to="correction") %>% 
         mutate(
             correction=factor(
-                .data$correction, levels=c('before', 'after'))) %>%
+                .data$correction, levels=c('after', 'before'))) %>%
         ggplot(aes(
             .data$value, color=.data$correction, linetype=.data$correction)
         ) + 
-        geom_freqpoly(alpha=1.0, bins=50) +
+        geom_freqpoly(alpha=1.0, bins=50, linewidth = 0.8) +
         scale_color_manual(values=c('#00BFC4', '#F8766D')) +
         scale_linetype_manual(values=c('solid', 'dashed')) +
         xlab(paste0("tfm(", ch, ")")) +
@@ -68,14 +68,19 @@ plotDiagnostics <- function(sce, ch) {
     
     # diagnostic plot for spillover estimate
     tb_bead <- metadata(sce)$beads_distr[[ch]]
+    tb_bead <- dplyr::mutate(
+        tb_bead,
+        barcode = ifelse(.data$barcode == ch,
+                         paste(ch, "(target)"), .data$barcode)
+    )
     tb_spill_prob <- metadata(sce)$spillover_est[[ch]]
     p_spill <- tb_bead %>%
         ggplot(aes(tfm(.data[[ch]]), color=.data$barcode)) +
-        geom_density(adjust=1) +
+        geom_density(adjust=1, linewidth=0.8) +
         geom_line(data=tb_spill_prob, 
                   aes(tfm(.data[[ch]]), .data$spill_prob_smooth), 
                   color="black", 
-                  linetype="longdash") + 
+                  linetype="longdash", linewidth=0.8) + 
         ylab("density")+
         ggtitle("Beads Experiment")
     

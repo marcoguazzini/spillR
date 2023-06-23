@@ -1,20 +1,49 @@
 ---
-title: "spillR-vignette"
+title: "spillR workflow"
+author:
+  name: Marco Guazzini
+  affiliation: Department of Advanced Computing Sciences, Maastricht University
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{spillR-vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: spillr_paper.bib
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-    collapse=TRUE,
-    comment="#>"
-)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
+                      fig.retina = 2, dpi = 96, 
+                      fig.width = 7.2916667, fig.asp = 0.6178571
+                      )
 ```
 
-```{r setup, warning=FALSE}
+# Introduction
+Mass cytometry makes it possible to count a large number of proteins 
+simultaneously on individual cells [@bandura2009mass; @bendall2011single]. 
+Mass cytometry has less spillover--- measurements from one channel overlap less 
+with those of another---than flow cytometry [@sp-c; @novo2013generalized], 
+but spillover is still a problem and affects downstream analyses such as 
+differential testing [@diffcyt; @seiler2021cytoglmm] or 
+dimensionality reduction [@scater]. 
+Reducing spillover by careful design of experiment 
+is possible [@takahashi2017mass], but a purely experimental approach may not be 
+sufficient nor efficient [@lun2017influence].
+@catalyst propose a method for addressing spillover by conducting an 
+experiment on beads. 
+This experiment measures spillover by staining each bead with a single antibody.
+Their solution relies on an estimate for the spillover matrix using 
+non-negative matrix factorization. The spillover matrix encodes the pairwise 
+spillover proportion between channels. 
+We avoid this step and directly describe the spillover channels and 
+the channel with the true signal using a mixture of nonparametric distributions.
+Our main new assumption is that the spillover distribution---not just the 
+spillover proportion---from the bead experiment
+carries over to the biological experiment.
+Here, we illustrate `spillR`
+
+```{r, warning=FALSE}
 library(spillR)
 library(CATALYST)
 library(dplyr)
