@@ -20,44 +20,12 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
 ```
 
 # Introduction
-Mass cytometry makes it possible to count a large number of proteins 
-simultaneously on individual cells [@bandura2009mass; @bendall2011single]. 
-Mass cytometry has less spillover--- measurements from one channel overlap less 
-with those of another---than flow cytometry [@sp-c; @novo2013generalized], 
-but spillover is still a problem and affects downstream analyses such as 
-differential testing [@diffcyt; @seiler2021cytoglmm] or 
-dimensionality reduction [@scater]. 
-Reducing spillover by careful design of experiment 
-is possible [@takahashi2017mass], but a purely experimental approach may not be 
-sufficient nor efficient [@lun2017influence].
-@catalyst propose a method for addressing spillover by conducting an 
-experiment on beads. 
-This experiment measures spillover by staining each bead with a single antibody.
-Their solution relies on an estimate for the spillover matrix using 
-non-negative matrix factorization. The spillover matrix encodes the pairwise 
-spillover proportion between channels. 
-We avoid this step and directly describe the spillover channels and 
-the channel with the true signal using a mixture of nonparametric distributions.
-Our main new assumption is that the spillover distribution---not just the 
-spillover proportion---from the bead experiment
-carries over to the biological experiment.
-Here, we illustrate `spillR`_R_ package for 
-spillover compensation in mass cytometry.
+Mass cytometry makes it possible to count a large number of proteins simultaneously on individual cells [@bandura2009mass; @bendall2011single]. Mass cytometry has less spillover--- measurements from one channel overlap less with those of another---than flow cytometry [@sp-c; @novo2013generalized], but spillover is still a problem and affects downstream analyses such as differential testing [@diffcyt; @seiler2021cytoglmm] or dimensionality reduction [@scater]. Reducing spillover by careful design of experiment is possible [@takahashi2017mass], but a purely experimental approach may not be sufficient nor efficient [@lun2017influence].@catalyst propose a method for addressing spillover by conducting an experiment on beads. This experiment measures spillover by staining each bead with a single antibody.Their solution relies on an estimate for the spillover matrix using non-negative matrix factorization. The spillover matrix encodes the pairwise spillover proportion between channels. We avoid this step and directly describe the spillover channels and the channel with the true signal using a mixture of nonparametric distributions.Our main new assumption is that the spillover distribution---not just the spillover proportion---from the bead experimentcarries over to the biological experiment.Here, we illustrate `spillR`_R_ package for spillover compensation in mass cytometry.
 
 # Data
-We test our method on one of the example datasets in the `CATALYST` package. 
-The dataset has an experiment with real cells and a corresponding
-bead experiment. 
-The experiments on real cells has 5,000 peripheral blood mononuclear cells 
-from healthy donors measured on 39 channels. 
-The experiment on beads has 10,000 cells measured on 36 channels. 
-They have single stained bead experiments. 
-The number of beads per mental label range from 112 to 241.
+We test our method on one of the example datasets in the `CATALYST` package. The dataset has an experiment with real cells and a correspondingbead experiment. The experiments on real cells has 5,000 peripheral blood mononuclear cells from healthy donors measured on 39 channels. The experiment on beads has 10,000 cells measured on 36 channels. They have single stained bead experiments. The number of beads per mental label range from 112 to 241.
 
-We compare the two methods on the same marker as in the original `CATALYST` 
-paper [@catalyst] in their Figure 3B. 
-In the original experiment, they conjugated three proteins---CD3, 
-CD8, and HLA-DR---with two different metal labels. 
+We compare the two methods on the same marker as in the original `CATALYST` paper [@catalyst] in their Figure 3B. In the original experiment, they conjugated three proteins---CD3, CD8, and HLA-DR---with two different metal labels. 
 
 ```{r load-data, warning=FALSE}
 library(spillR)
@@ -85,100 +53,51 @@ marker_to_barc <-
 
 
 # Compensation workflow
-We propose a two step procedure for estimating the spillover probability. 
-In step 1, we initialize all marker distributions $Y_{ij} \mid Z_{ij} = k$ 
-and the mixture probabilities $\pi_{kj}$. 
-We update the mixture component of the target marker $Y_{ij} \mid Z_{ij} = j$ 
-and the mixture probabilities using the EM algorithm [@dempster1977maximum]. 
-In step 2, we fit a logistic function to the noisy probability estimates from 
-step 2 using logistic regression. 
-We use the smooth probability estimates to assign counts to spillover or signal.
+We propose a two step procedure for estimating the spillover probability. In step 1, we initialize all marker distributions $Y_{ij} \mid Z_{ij} = k$ and the mixture probabilities $\pi_{kj}$. We update the mixture component of the target marker $Y_{ij} \mid Z_{ij} = j$ and the mixture probabilities using the EM algorithm [@dempster1977maximum]. In step 2, we fit a logistic function to the noisy probability estimates from step 2 using logistic regression. We use the smooth probability estimates to assign counts to spillover or signal.
 ## Step 1: EM Algorithm
-We initialize the conditional probability mass function using the nonparametric
-estimate by counting the proportion of $y_{ij}$ that take the value $y$,
+We initialize the conditional probability mass function using the nonparametric estimate by counting the proportion of $y_{ij}$ that take the value $y$,
 $$
-P^{(0)}(Y_{ij} =y \mid Z_{ij} = k) = \frac{\sum_{i = 1}^{n_j} 
-\mathbf{1}\left(y_{ij}^{(0)} = y\right)}{\sum_{j = 1}^K \sum_{i = 1}^{n_j}
-\mathbf{1}\left(y_{ij}^{(0)} = y\right)},
+P^{(0)}(Y_{ij} =y \mid Z_{ij} = k) = \frac{\sum_{i = 1}^{n_j} \mathbf{1}\left(y_{ij}^{(0)} = y\right)}{\sum_{j = 1}^K \sum_{i = 1}^{n_j}\mathbf{1}\left(y_{ij}^{(0)} = y\right)},
 $$
-where $y_{ij}^{(0)}$ is the element at the $i$th row and $j$th column 
-in observed count matrix $\mathbf{Y} = (y_{ij})$ at iteration $t = 0$, 
-$\mathbf{1}(\cdot)$ is the indicator function, $n_j$ is the total number 
-of cells measured on marker $j$, and $K$ is the total number of 
-spillover markers. 
-We set the mixture probability vector to the discrete uniform, 
+where $y_{ij}^{(0)}$ is the element at the $i$th row and $j$th column in observed count matrix $\mathbf{Y} = (y_{ij})$ at iteration $t = 0$, $\mathbf{1}(\cdot)$ is the indicator function, $n_j$ is the total number of cells measured on marker $j$, and $K$ is the total number of spillover markers. We set the mixture probability vector to the discrete uniform, 
 $$
 \pi_{1j}^{(0)}, \dots, \pi_{Kj}^{(0)} = 1/K.
 $$ 
 
-We update---going from current estimate $t$ to the next $t+1$---the 
-target distribution and the mixture probability vector using 
-the hard-assignment EM algorithm:
+We update---going from current estimate $t$ to the next $t+1$---the target distribution and the mixture probability vector using the hard-assignment EM algorithm:
 
-* E step: We calculate the probability of a count $Y_{ij} = y_{ij}$ 
-spilling over from $k$ into $j$ at the current estimate $t$ of 
-the marker distributions and mixture probability vector:
+* E step: We calculate the probability of a count $Y_{ij} = y_{ij}$ spilling over from $k$ into $j$ at the current estimate $t$ of the marker distributions and mixture probability vector:
 
 $$
-P\left(Z_{ij} = k \mid Y_{ij} = y_{ij}^{(t)}\right) = 
-\frac{\pi_{kj} \, P^{(t)}(Y_{ij} = y_{ij}^{(t)} \mid Z_{ij} = k)}
-{\sum_{k' = 1}^K \pi_{k'j} P^{(t)}(Y_{ij} = y_{ij}^{(t)} \mid Z_{ij} = k')}.
+P\left(Z_{ij} = k \mid Y_{ij} = y_{ij}^{(t)}\right) = \frac{\pi_{kj} \, P^{(t)}(Y_{ij} = y_{ij}^{(t)} \mid Z_{ij} = k)}{\sum_{k' = 1}^K \pi_{k'j} P^{(t)}(Y_{ij} = y_{ij}^{(t)} \mid Z_{ij} = k')}.
 $$
 
 * M step: We update, $(t+1)$, the mixture probability vector,
 
 $$
-\pi_{kj}^{(t+1)} = \frac{1}{n} \sum_{i = 1}^{n} P(Z_{ij} = 
-k \mid Y_{ij} = y_{ij}^{(t)}),
+\pi_{kj}^{(t+1)} = \frac{1}{n} \sum_{i = 1}^{n} P(Z_{ij} = k \mid Y_{ij} = y_{ij}^{(t)}),
 $$ 
 
-assign counts to the marker with the largest posterior probability and 
-re-estimate the distribution for the target marker 
-with the newly assigned counts,
+assign counts to the marker with the largest posterior probability and re-estimate the distribution for the target marker with the newly assigned counts,
 $$
-P^{(t+1)}(Y_{ij} =y \mid Z_{ij} = k) = \frac{\sum_{i = 1}^{n_j} 
-\mathbf{1}\left(y_{ij}^{(t+1)} = y\right)}{\sum_{j = 1}^K 
-\sum_{i = 1}^{n_j} \mathbf{1}\left(y_{ij}^{(t+1)} = y\right)}.
+P^{(t+1)}(Y_{ij} =y \mid Z_{ij} = k) = \frac{\sum_{i = 1}^{n_j} \mathbf{1}\left(y_{ij}^{(t+1)} = y\right)}{\sum_{j = 1}^K \sum_{i = 1}^{n_j} \mathbf{1}\left(y_{ij}^{(t+1)} = y\right)}.
 $$
 
-After $T$ iterations, the final output is the spillover 
-probability curve with estimates at discrete points in the support of $Y_i$, 
+After $T$ iterations, the final output is the spillover probability curve with estimates at discrete points in the support of $Y_i$, 
 $$
-\hat{P}(\text{spillover} \mid Y_{ij} = y) = 
-1 - P^{(T)}(Z_{ij} = j \mid Y_{ij} = y).
+\hat{P}(\text{spillover} \mid Y_{ij} = y) = 1 - P^{(T)}(Z_{ij} = j \mid Y_{ij} = y).
 $$
 ## Step 2: Logistic Regression
 
-This step is a post-processing step of $\hat{P}(\text{spillover} \mid Y_i = y)$.
-Until now, the procedure is fully nonparametric. 
-We apply no regularization to $y$'s that are close to one another. 
-The logistic regression model is,
+This step is a post-processing step of $\hat{P}(\text{spillover} \mid Y_i = y)$.Until now, the procedure is fully nonparametric. We apply no regularization to $y$'s that are close to one another. The logistic regression model is,
 $$
-\log\left(\frac{P(\text{spillover} \mid Y_{ij} = y)}
-{1-P(\text{spillover} \mid Y_{ij} = y)}\right) = \beta_0 + \beta_1 y,
+\log\left(\frac{P(\text{spillover} \mid Y_{ij} = y)}{1-P(\text{spillover} \mid Y_{ij} = y)}\right) = \beta_0 + \beta_1 y,
 $$
-with $y$ transformed using the inverse hyperbolic sine transformation with 
-the cofactor set 5 [@bendall2011single] to stabilize the variance and 
-account for heteroskedasticity. 
-We fit the logistic regression model using maximum likelihood (MLE) estimation 
-and obtain estimates for the intercept $\hat{\beta}_0$ and 
-slope $\hat{\beta}_1$. 
-The post-processed spillover probability for $Y_{ij} = y$,
+with $y$ transformed using the inverse hyperbolic sine transformation with the cofactor set 5 [@bendall2011single] to stabilize the variance and account for heteroskedasticity. We fit the logistic regression model using maximum likelihood (MLE) estimation and obtain estimates for the intercept $\hat{\beta}_0$ and slope $\hat{\beta}_1$. The post-processed spillover probability for $Y_{ij} = y$,
 $$
-\tilde{P}(\text{spillover} \mid Y_{ij} = y) = 
-(1 + e^{-(\hat{\beta}_0 + \hat{\beta}_1 y)})^{-1}.
+\tilde{P}(\text{spillover} \mid Y_{ij} = y) = (1 + e^{-(\hat{\beta}_0 + \hat{\beta}_1 y)})^{-1}.
 $$
-The $\tilde{P}(\text{spillover} \mid Y_{ij} = y)$ is a smooth version of the 
-noisy estimate from step 1, $\hat{P}(\text{spillover} \mid Y_{ij} = y)$. 
-We obtain the last equation by solving the logistic regression model for 
-the spillover probability and plugging in the MLE estimate. 
-We use the spillover probability to flip a biased coin and 
-declare the current count as spillover if the coin comes up heads, 
-otherwise we keep the count. 
-We consider spillover counts as counts that have no clear 
-biological interpretation and remove them from our dataset. 
-In our implementation, we choose to set them to `NA` values instead of 
-zeros to avoid zero-inflated distributions.
+The $\tilde{P}(\text{spillover} \mid Y_{ij} = y)$ is a smooth version of the noisy estimate from step 1, $\hat{P}(\text{spillover} \mid Y_{ij} = y)$. We obtain the last equation by solving the logistic regression model for the spillover probability and plugging in the MLE estimate. We use the spillover probability to flip a biased coin and declare the current count as spillover if the coin comes up heads, otherwise we keep the count. We consider spillover counts as counts that have no clear biological interpretation and remove them from our dataset. In our implementation, we choose to set them to `NA` values instead of zeros to avoid zero-inflated distributions.
 
 ```{r compensation-workflow, warning=FALSE }
 # --------- call compensate from compCytof package ---------
@@ -195,11 +114,7 @@ plot_grid(plotlist = ps, nrow=2)
 
 # Plotting
 
-`spillR` offers the possibility to visualize possible different cases within
-the dataset. The function `plotDiagnostics` presents two plots
-The first one is the frequency polygons before and after spillover compensation.
-While, the other report density plot of spillover markers with our 
-estimation of the spillover probability function.
+`spillR` offers the possibility to visualize possible different cases withinthe dataset. The function `plotDiagnostics` presents two plots: the first one is the frequency polygons before and after spillover compensation. While, the other report density plot of spillover markers with our estimation of the spillover probability function.
 
 ```{r plotting, warning=FALSE}
 p_list <- spillR::plotDiagnostics(sce_spillr, "Yb173Di")
