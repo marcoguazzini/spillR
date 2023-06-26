@@ -202,22 +202,7 @@ While, the other report density plot of spillover markers with our
 estimation of the spillover probability function.
 
 ```{r plotting, warning=FALSE}
-p_list <- spillR::plotDiagnostics(sce_spillr, "Eu153Di")
-p1 <- plot_grid(
-    p_list[[1]] + xlab("CD68 (Eu153Di)"),
-    p_list[[2]] + xlab("CD68 (Eu153Di)"),
-    rel_widths = c(0.5, 0.5), nrow = 1
-  )
-
-p_list <- spillR::plotDiagnostics(sce_spillr, "Gd160Di")
-p2 <- plot_grid(
-    p_list[[1]] + xlab("CD45 (Gd160Di)"),
-    p_list[[2]] + xlab("CD45 (Gd160Di)"),
-    rel_widths = c(0.5, 0.5), nrow = 1
-  )
-
-plot_grid(p1, p2, nrow = 2)
-
+p_list <- spillR::plotDiagnostics(sce_spillr, "Yb173Di")
 ```
 
 
