@@ -53,5 +53,6 @@ Suggests:
     knitr, 
     rmarkdown, 
     cowplot, 
-    testthat
+    testthat,
+    BiocStyle
 VignetteBuilder: knitr
