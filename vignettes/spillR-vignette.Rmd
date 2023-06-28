@@ -33,19 +33,20 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
 
 # Introduction
 
-Mass cytometry makes it possible to count a large number of proteins simultaneously on individual cells [@bandura2009mass; @bendall2011single]. Mass cytometry has less spillover--- measurements from one channel overlap less with those of another---than flow cytometry [@sp-c; @novo2013generalized], but spillover is still a problem and affects downstream analyses such as differential testing [@diffcyt; @seiler2021cytoglmm] or dimensionality reduction [@scater]. Reducing spillover by careful design of experiment is possible [@takahashi2017mass], but a purely experimental approach may not be sufficient nor efficient [@lun2017influence].@catalyst propose a method for addressing spillover by conducting an experiment on beads. This experiment measures spillover by staining each bead with a single antibody.Their solution relies on an estimate for the spillover matrix using non-negative matrix factorization. The spillover matrix encodes the pairwise spillover proportion between channels. We avoid this step and directly describe the spillover channels and the channel with the true signal using a mixture of nonparametric distributions.Our main new assumption is that the spillover distribution---not just the spillover proportion---from the bead experiment carries over to the biological experiment.Here, we illustrate `spillR`_R_ package for spillover compensation in mass cytometry.
+Mass cytometry makes it possible to count a large number of proteins simultaneously on individual cells [@bandura2009mass; @bendall2011single]. Mass cytometry has less spillover--- measurements from one channel overlap less with those of another---than flow cytometry [@sp-c; @novo2013generalized], but spillover is still a problem and affects downstream analyses such as differential testing [@diffcyt; @seiler2021cytoglmm] or dimensionality reduction [@scater]. Reducing spillover by careful design of experiment is possible [@takahashi2017mass], but a purely experimental approach may not be sufficient nor efficient [@lun2017influence]. @catalyst propose a method for addressing spillover by conducting an experiment on beads. This experiment measures spillover by staining each bead with a single antibody. Their solution relies on an estimate for the spillover matrix using non-negative matrix factorization. The spillover matrix encodes the pairwise spillover proportion between channels. We avoid this step and directly describe the spillover channels and the channel with the true signal using a mixture of nonparametric distributions. Our main new assumption is that the spillover distribution---not just the spillover proportion---from the beads experiment carries over to the biological experiment. Here, we illustrate the `spillR`_R_ package for spillover compensation in mass cytometry.
 
 # Data
 
-We test our method on one of the example datasets in the `CATALYST` package. The dataset has an experiment with real cells and a correspondingbead experiment. The experiments on real cells has 5,000 peripheral blood mononuclear cells from healthy donors measured on 39 channels. The experiment on beads has 10,000 cells measured on 36 channels. They have single stained bead experiments. The number of beads per mental label range from 112 to 241.
+We test our method on one of the example datasets in the `CATALYST` package. The dataset has an experiment with real cells and a corresponding bead experiment. The experiments on real cells has 5,000 peripheral blood mononuclear cells from healthy donors measured on 39 channels. The experiment on beads has 10,000 cells measured on 36 channels. They have single stained bead experiments. The number of beads per mental label range from 112 to 241.
 
-We compare the two methods on the same marker as in the original `CATALYST` paper [@catalyst] in their Figure 3B. In the original experiment, they conjugated three proteins---CD3, CD8, and HLA-DR---with two different metal labels. 
+We compare the two methods on the same marker as in the original `CATALYST` paper [@catalyst] in their Figure 3B. In the original experiment, they conjugated three proteins---CD3, CD8, and HLA-DR---with two different metal labels. Here is the `CATALYST` code to load the data into a Single Cell Experiment (SCE).
 
 ```{r load-data, warning=FALSE}
 library(spillR)
 library(CATALYST)
 library(dplyr)
 library(cowplot)
+
 bc_key <- c(139, 141:156, 158:176)
 sce_bead <- prepData(ss_exp)
 sce_bead <- assignPrelim(sce_bead, bc_key, verbose = FALSE)
@@ -55,7 +56,15 @@ sce_bead <- computeSpillmat(sce_bead)
 # --------- experiment with real cells ---------
 data(mp_cells, package = "CATALYST")
 sce <- prepData(mp_cells)
+```
 
+# Compensation Workflow
+
+We propose a two step procedure for estimating the spillover probability. In step 1, we initialize all marker distributions $Y_{ij} \mid Z_{ij} = k$ and the mixture probabilities $\pi_{kj}$. We update the mixture component of the target marker $Y_{ij} \mid Z_{ij} = j$ and the mixture probabilities using the EM algorithm [@dempster1977maximum]. In step 2, we fit a logistic function to the noisy probability estimates from step 2 using logistic regression. We use the smooth probability estimates to assign counts to spillover or signal.
+
+The function `compCytof` takes as two inputs Single Cell Experiment (SCE) objects as input. One contains the real cells experiment and the other the beads experiment. It also requires a table `marker_to_barc` that maps the channels to their barcodes used in the beads experiment. The output is the same SCE for the real experiments with the addition of the compensated counts and the `asinh` transformed compensated counts.
+
+```{r compensation-workflow, warning=FALSE}
 # --------- table for mapping markers and barcode ---------
 marker_to_barc <- 
     rowData(sce_bead)[,c("channel_name", "is_bc")] %>%
@@ -63,15 +72,7 @@ marker_to_barc <-
     dplyr::filter(is_bc == TRUE) %>%
     mutate(barcode=bc_key) %>%
     select(marker=channel_name, barcode)
-```
 
-# Compensation Workflow
-
-We propose a two step procedure for estimating the spillover probability. In step 1, we initialize all marker distributions $Y_{ij} \mid Z_{ij} = k$ and the mixture probabilities $\pi_{kj}$. We update the mixture component of the target marker $Y_{ij} \mid Z_{ij} = j$ and the mixture probabilities using the EM algorithm [@dempster1977maximum]. In step 2, we fit a logistic function to the noisy probability estimates from step 2 using logistic regression. We use the smooth probability estimates to assign counts to spillover or signal.
-
-The function `compCytof` takes as inputs; two Single Cell Experiment (SCE) objects one containing the real cells experiment and the other the beads experiment, and a table `marker_to_barc` that map the channels with the barcodes used on the beads experiment. The output is the same SCE for the real experiments with the addition of the compensated counts and the transformed compensated counts with `asinh` transformation.
-
-```{r compensation-workflow, warning=FALSE}
 # --------- call compensate from compCytof package ---------
 sce_spillr <- 
     spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite=FALSE)
@@ -79,15 +80,13 @@ sce_spillr <-
 # --------- 2d histogram from spillR -------
 as <- c("counts", "exprs", "compcounts", "compexprs")
 chs <- c( "Yb171Di", "Yb173Di")
-ps <- lapply(as, function(a) 
-    plotScatter(sce_spillr, chs, assay=a))
+ps <- lapply(as, function(a) plotScatter(sce_spillr, chs, assay=a))
 plot_grid(plotlist = ps, nrow = 2)
 ```
 
 # Plotting
 
-`spillR` offers the possibility to visualize possible different cases within the dataset. The function `plotDiagnostics` presents two plots: the first one is the frequency polygons before and after spillover compensation. While, the other report density plot of spillover markers with our estimation of the spillover probability function.
-This function allows us to investigate if the compensation performed by our method is correct. In fact, `plotDiagnostics` plots the spillover probability curve and based on that we can judge if the curve makes sense by comparing it to the observed counts and bead distributions.
+`spillR` offers the possibility to visualize the compensation results and the internal spillover estimates. The function `plotDiagnostics` presents two plots: the frequency polygons before and after spillover compensation, and the density plot of spillover markers with our estimation of the spillover probability function as a black dashed curve. This plot allows us to check the compensation performed by our method. If the black curve captures all the spillover makers, then that indicates a reliable spillover estimation. If the target marker in the beads experiment overlaps with the real cells, then that indicates a high-quality bead experiment.
 
 ```{r plotting, warning=FALSE}
 ps <- spillR::plotDiagnostics(sce_spillr, "Yb173Di")
