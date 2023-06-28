@@ -62,7 +62,7 @@ sce <- prepData(mp_cells)
 
 We propose a two step procedure for estimating the spillover probability. In step 1, we initialize all marker distributions $Y_{ij} \mid Z_{ij} = k$ and the mixture probabilities $\pi_{kj}$. We update the mixture component of the target marker $Y_{ij} \mid Z_{ij} = j$ and the mixture probabilities using the EM algorithm [@dempster1977maximum]. In step 2, we fit a logistic function to the noisy probability estimates from step 2 using logistic regression. We use the smooth probability estimates to assign counts to spillover or signal.
 
-The function `compCytof` takes as two inputs Single Cell Experiment (SCE) objects as input. One contains the real cells experiment and the other the beads experiment. It also requires a table `marker_to_barc` that maps the channels to their barcodes used in the beads experiment. The output is the same SCE for the real experiments with the addition of the compensated counts and the `asinh` transformed compensated counts.
+The function `compCytof` takes as inputs two Single Cell Experiment (SCE) objects. One contains the real cells experiment and the other the beads experiment. It also requires a table `marker_to_barc` that maps the channels to their barcodes used in the beads experiment. The output is the same SCE for the real experiments with the addition of the compensated counts and the `asinh` transformed compensated counts.
 
 ```{r compensation-workflow, warning=FALSE}
 # --------- table for mapping markers and barcode ---------
