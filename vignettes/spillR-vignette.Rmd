@@ -84,7 +84,7 @@ ps <- lapply(as, function(a) plotScatter(sce_spillr, chs, assay=a))
 plot_grid(plotlist = ps, nrow = 2)
 ```
 
-# Plotting
+# Diagnostic Plot
 
 `spillR` offers the possibility to visualize the compensation results and the internal spillover estimates. The function `plotDiagnostics` presents two plots: the frequency polygons before and after spillover compensation, and the density plot of spillover markers with our estimation of the spillover probability function as a black dashed curve. This plot allows us to check the compensation performed by our method. If the black curve captures all the spillover makers, then that indicates a reliable spillover estimation. If the target marker in the beads experiment overlaps with the real cells, then that indicates a high-quality bead experiment.
 
