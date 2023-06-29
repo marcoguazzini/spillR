@@ -19,8 +19,6 @@
 #'   \item{target_marker}{input marker in real experiment}
 #'   \item{spillover_markers}{input markers in bead experiment}
 compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
-    # option 4: no smoothing
-    # no hyperparameters
     tfm <- function(x) asinh(x/5)
     all_markers <- c(target_marker, spillover_markers)
     y_target <- tb_real %>% dplyr::pull(.data[[target_marker]])
@@ -61,7 +59,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
     pi <- rep(1, length(all_markers))
     pi <- pi/length(pi)
     names(pi) <- all_markers
-    
+
     # add pmf from real cells
     y <- tb_real %>% 
         dplyr::pull(tidyselect::all_of(target_marker))
@@ -94,12 +92,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers) {
         # M-step
         # update prior probability
         pi <- colSums(post_M)/nrow(post_M)
-        
-        # stochastic EM: 
-        # assigns each observation to a class 
-        #with the highest posterior probability
-        #class <- apply(
-        #post_M, 1, function(Mi) sample(colnames(post_M), size = 1, prob = Mi))
+    
         # categorical EM:
         # assigns each observation randomly based on posterior probabilities
         class <- all_markers[apply(post_M, 1, which.max)]
