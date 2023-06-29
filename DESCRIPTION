@@ -6,10 +6,10 @@ Authors@R: c(
     person("Marco", "Guazzini",
     email= "m.guazzini@student.maastrichtuniversity.nl", 
     role = c("aut", "cre"), comment=c(ORCID="0009-0007-8111-5772")), 
-    person("Alexander", "Reisach" , 
-    email="alexander.reisach@gmail.com", role = "aut"), 
+    person("Alexander G.", "Reisach" , 
+    email="alexander.reisach@u-paris.fr", role = "aut"), 
     person("Sebastian", "Weichwald",
-    email= "s.weichwald@math.ku.dk", role = "aut"), 
+    email= "sweichwald@math.ku.dk", role = "aut"), 
     person("Christof", "Seiler", 
     email= "christof.seiler@maastrichtuniversity.nl", role = "aut"))
 Description: Channel interference in mass cytometry can cause spillover 
