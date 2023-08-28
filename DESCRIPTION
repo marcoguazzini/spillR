@@ -48,7 +48,8 @@ Imports:
     stats, 
     CATALYST,
     ggplot2,
-    tidyr
+    tidyr,
+    spatstat.geom
 Suggests: 
     knitr, 
     rmarkdown, 

@@ -4,22 +4,25 @@
 \alias{compCytof}
 \title{Compute spillover probability and correct for spillover}
 \usage{
-compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
+compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE, runmed_k = 11)
 }
 \arguments{
-\item{sce}{Single Cell Experiment for the real cells}
+\item{sce}{\code{\link[SingleCellExperiment]{SingleCellExperiment}} for the 
+real cells}
 
-\item{sce_bead}{Single Cell Experiment for the bead experiment}
+\item{sce_bead}{\code{\link[SingleCellExperiment]{SingleCellExperiment}} for 
+the bead experiment}
 
-\item{marker_to_barc}{Table for barcodes in the beads experiment}
+\item{marker_to_barc}{Table that maps the marker to the barcode 
+in the beads experiment}
 
 \item{overwrite}{logical; if TRUE data are overwritten if FALSE 
 data are saved in new columns}
+
+\item{runmed_k}{Integer width of median window for smoothing the ECDF}
 }
 \value{
-Compensates the input \code{\link{SummarizedExperiment}} or, 
-    if \code{x} is a character string, 
-    all FCS files in the specified location.
+A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object
 }
 \description{
 Compute spillover probability and correct for spillover

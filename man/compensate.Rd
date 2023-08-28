@@ -4,7 +4,7 @@
 \alias{compensate}
 \title{Compute spillover probability and correct for spillover}
 \usage{
-compensate(tb_real, tb_bead, target_marker, spillover_markers)
+compensate(tb_real, tb_bead, target_marker, spillover_markers, runmed_k)
 }
 \arguments{
 \item{tb_real}{Data frame or tibble with proteins counts of real experiment}
@@ -14,6 +14,8 @@ compensate(tb_real, tb_bead, target_marker, spillover_markers)
 \item{target_marker}{Marker name in real experiment}
 
 \item{spillover_markers}{Marker names in bead experiment}
+
+\item{runmed_k}{Integer width of median window for smoothing the ECDF}
 }
 \value{
 A list of class \code{spillr} containing
