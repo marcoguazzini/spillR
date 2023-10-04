@@ -34,7 +34,7 @@
 #' plotDiagnostics(sce, "Yb173Di")
 plotDiagnostics <- function(sce, ch) {
     tfm <- function(x)
-        asinh(x / 5) # TODO: this should not be hardcoded
+        asinh(x / 5) 
     
     # before and after correction
     exprs <- sce %>%

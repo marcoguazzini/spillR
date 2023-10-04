@@ -50,7 +50,7 @@ compCytof <-
         
         tfm <-
             function(x)
-                asinh(x / 5) # TODO: this should not be hardcoded
+                asinh(x / 5) 
         
         # --------- experiment with beads ---------
         

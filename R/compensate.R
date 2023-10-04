@@ -86,9 +86,11 @@ compensate <-
         
         # --------- step 1: initialize ---------
         
-        # prior probability
-        pi <- rep(1, length(all_markers))
-        pi <- pi / length(pi)
+        # uniform prior probability
+        n_markers <- length(all_markers)
+        pi <- rep(NA, n_markers)
+        pi[1] <- 0.9
+        pi[2:n_markers] <- 0.1/(n_markers-1)
         names(pi) <- all_markers
         
         # add pmf from real cells
