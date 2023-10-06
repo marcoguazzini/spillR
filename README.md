@@ -1,4 +1,4 @@
-# spillR: vignette
+# spillR
 
 ```r
 #run once
