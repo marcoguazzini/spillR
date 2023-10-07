@@ -73,11 +73,11 @@ marker_to_barc <-
     mutate(barcode=bc_key) %>%
     select(marker=channel_name, barcode)
 
-# --------- call compensate from compCytof package ---------
+# --------- compensate function from spillR package ---------
 sce_spillr <- 
     spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite=FALSE)
 
-# --------- 2d histogram from spillR -------
+# --------- 2d histogram from CATALYST package -------
 as <- c("counts", "exprs", "compcounts", "compexprs")
 chs <- c( "Yb171Di", "Yb173Di")
 ps <- lapply(as, function(a) plotScatter(sce_spillr, chs, assay=a))
