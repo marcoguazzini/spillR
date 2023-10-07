@@ -4,16 +4,15 @@ Title: Spillover Compensation for Mass Cytometry Data
 Version: 0.99.0
 Authors@R: c(
     person("Marco", "Guazzini",
-    email = "m.guazzini@student.maastrichtuniversity.nl", 
+    email= "m.guazzini@student.maastrichtuniversity.nl", 
     role = c("aut", "cre"), comment=c(ORCID="0009-0007-8111-5772")), 
-    person("Alexander G.", "Reisach", 
+    person("Alexander G.", "Reisach" , 
     email = "alexander.reisach@u-paris.fr", role = "aut"), 
     person("Sebastian", "Weichwald",
-    email = "sweichwald@math.ku.dk", 
-    role = c("aut"), comment=c(ORCID="0000-0003-0169-7244")),
+    email = "sweichwald@math.ku.dk", role = "aut"), 
     person("Christof", "Seiler", 
-    email = "christof.seiler@maastrichtuniversity.nl", 
-    role = c("aut", "cre"), comment=c(ORCID="0000-0001-8802-3642"))
+    email = "christof.seiler@maastrichtuniversity.nl", role = "aut",
+    comment = c(ORCID = "0000-0001-8802-3642")))
 Description: Channel interference in mass cytometry can cause spillover 
     and may result in miscounting of protein markers. We develop a 
     nonparametric finite mixture model, and use the mixture components 
