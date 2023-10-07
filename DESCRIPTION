@@ -1,28 +1,24 @@
 Package: spillR
 Type: Package
-Title: Spillover compensation for mass cytometry data
+Title: Spillover Compensation for Mass Cytometry Data
 Version: 0.99.0
 Authors@R: c(
     person("Marco", "Guazzini",
-    email= "m.guazzini@student.maastrichtuniversity.nl", 
+    email = "m.guazzini@student.maastrichtuniversity.nl", 
     role = c("aut", "cre"), comment=c(ORCID="0009-0007-8111-5772")), 
-    person("Alexander G.", "Reisach" , 
-    email="alexander.reisach@u-paris.fr", role = "aut"), 
+    person("Alexander G.", "Reisach", 
+    email = "alexander.reisach@u-paris.fr", role = "aut"), 
     person("Sebastian", "Weichwald",
-    email= "sweichwald@math.ku.dk", role = "aut"), 
+    email = "sweichwald@math.ku.dk", 
+    role = c("aut"), comment=c(ORCID="0000-0003-0169-7244"),
     person("Christof", "Seiler", 
-    email= "christof.seiler@maastrichtuniversity.nl", role = "aut"))
+    email = "christof.seiler@maastrichtuniversity.nl", 
+    role = c("aut", "cre"), comment=c(ORCID="0000-0001-8802-3642"))
 Description: Channel interference in mass cytometry can cause spillover 
-    and may result in miscounting of protein markers. 
-    We propose a method that skips the matrix estimation step and 
-    work directly with the full bead distributions. 
-    We develop a nonparametric finite mixture model, 
-    and use the mixture components to estimate 
-    the probability of spillover. 
-    We implement this in an R package spillR using 
-    expectation-maximization and logistic regression.
-    We design spillR to provide a model-based compensation 
-    for mass cytometry data.
+    and may result in miscounting of protein markers. We develop a 
+    nonparametric finite mixture model, and use the mixture components 
+    to estimate the probability of spillover. We implement our method 
+    using expectation-maximization to fit the mixture model.
 biocViews: 
     FlowCytometry, 
     ImmunoOncology, 
