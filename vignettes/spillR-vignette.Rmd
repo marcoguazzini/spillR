@@ -14,6 +14,7 @@ author:
   affiliation: 
   - Department of Advanced Computing Sciences, Maastricht University
   - Mathematics Centre Maastricht, Maastricht University, The Netherlands
+  - Center of Experimental Rheumatology, Department of Rheumatology, University Hospital Zurich, University of Zurich, Switzerland
 date: "`r Sys.Date()`"
 output: 
   BiocStyle::html_document
@@ -45,6 +46,7 @@ We compare the two methods on the same marker as in the original `CATALYST` pape
 library(spillR)
 library(CATALYST)
 library(dplyr)
+library(ggplot2)
 library(cowplot)
 
 bc_key <- c(139, 141:156, 158:176)
@@ -88,17 +90,16 @@ plot_grid(plotlist = ps, nrow = 2)
 
 ```{r plotting, warning=FALSE}
 ps <- spillR::plotDiagnostics(sce_spillr, "Yb173Di")
-plot_grid(plotlist = ps, nrow = 1)
+x_lim <- c(0, 7)
+plot_grid(ps[[1]] + xlim(x_lim), 
+          ps[[2]] + xlim(x_lim), 
+          ncol = 1, align = "v")
 ```
 
-# References {-}
-
-<div id="refs"></div>
-
-# Appendix {-}
-
-## Session Info {-}
+# Session Info {-}
 
 ```{r session_info}
 sessionInfo()
 ```
+
+# References {-}
