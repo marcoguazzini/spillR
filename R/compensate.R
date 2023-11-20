@@ -32,7 +32,7 @@ compensate <-
         # check if any beads
         tb_bead_keep <- tb_bead
         tb_bead <-
-            tb_bead %>% dplyr::filter(.data$barcode != target_marker)
+            tb_bead %>% filter(barcode != !!target_marker)
         if (nrow(tb_bead) == 0) {
             warning("no beads")
             return(NULL)
@@ -66,23 +66,23 @@ compensate <-
         
         # collect pmf from beads
         for (marker in spillover_markers) {
-            n <- nrow(dplyr::filter(tb_bead, .data$barcode == marker))
+            n <- nrow(filter(tb_bead, .data$barcode == marker))
             if (n > 0) {
                 Fn <- tb_bead %>%
-                    dplyr::filter(.data$barcode == marker) %>%
-                    dplyr::pull(tidyselect::all_of(target_marker)) %>%
+                    filter(.data$barcode == marker) %>%
+                    pull(all_of(target_marker)) %>%
                     ecdf()
                 tb <- tb_beads_pmf %>%
-                    dplyr::mutate(pmf = Fn(.data$y) - Fn(.data$y - 1)) %>%
-                    dplyr::mutate(pmf = smoothing(.data$pmf)) %>%
-                    dplyr::select(.data$y, .data$pmf)
+                    mutate(pmf = Fn(y) - Fn(y - 1)) %>%
+                    mutate(pmf = smoothing(pmf)) %>%
+                    select(y, pmf)
                 names(tb) <- c("y", marker)
-                tb_beads_pmf %<>% dplyr::left_join(tb, by = "y")
+                tb_beads_pmf %<>% left_join(tb, by = "y")
             } else {
                 tb <- tibble(y = y_min:y_max,
                              pmf = 1 / nrow(tb_beads_pmf))
                 names(tb) <- c("y", marker)
-                tb_beads_pmf %<>% dplyr::left_join(tb, by = "y")
+                tb_beads_pmf %<>% left_join(tb, by = "y")
             }
         }
         
@@ -97,16 +97,16 @@ compensate <-
         
         # add pmf from real cells
         Fn <- tb_real %>%
-            dplyr::pull(tidyselect::all_of(target_marker)) %>%
+            pull(all_of(target_marker)) %>%
             ecdf()
         tb_real_pmf <- tibble(y = y_min:y_max) %>%
-            dplyr::mutate(pmf = Fn(.data$y) - Fn(.data$y - 1)) %>%
-            dplyr::mutate(pmf = smoothing(.data$pmf)) %>%
-            dplyr::select(.data$y, .data$pmf)
+            mutate(pmf = Fn(y) - Fn(y - 1)) %>%
+            mutate(pmf = smoothing(pmf)) %>%
+            select(y, pmf)
         names(tb_real_pmf) <- c("y", target_marker)
         
         # join beads and real
-        tb_pmf <- dplyr::left_join(tb_beads_pmf, tb_real_pmf, by = "y")
+        tb_pmf <- left_join(tb_beads_pmf, tb_real_pmf, by = "y")
         
         # --------- step 2: iterate ---------
         
@@ -119,7 +119,7 @@ compensate <-
             
             # membership probabilities
             M <- tb_pmf %>% 
-                dplyr::select(tidyselect::all_of(all_markers)) %>% 
+                select(all_of(all_markers)) %>% 
                 as.matrix()
             PI <- matrix(rep(pi, each = nrow(M)), ncol = ncol(M))
             post_M <- PI * M
@@ -130,25 +130,25 @@ compensate <-
             # M-step
             
             # update prior probability
-            y_pi <- dplyr::bind_cols(y = tb_pmf$y, post_M)
+            y_pi <- bind_cols(y = tb_pmf$y, post_M)
             y_obsv <- tb_real %>% 
-                dplyr::select(y = tidyselect::all_of(target_marker))
-            y_obsv <- dplyr::left_join(y_obsv, y_pi, by = "y")
-            pi <- y_obsv %>% dplyr::select(-.data$y)
+                select(y = all_of(target_marker))
+            y_obsv <- left_join(y_obsv, y_pi, by = "y")
+            pi <- y_obsv %>% select(-y)
             pi <- colSums(pi) / nrow(pi)
             
             # new weighted empirical density estimate
-            Fn <- spatstat.geom::ewcdf(
-                dplyr::pull(y_obsv, .data$y),
-                weights = dplyr::pull(y_obsv, tidyselect::all_of(target_marker))
+            Fn <- ewcdf(
+                pull(y_obsv, y),
+                weights = pull(y_obsv, all_of(target_marker))
                 )
             tb_real_pmf <- tibble(y = y_min:y_max) %>%
-                dplyr::mutate(pmf = Fn(.data$y) - Fn(.data$y - 1)) %>%
-                dplyr::mutate(pmf = smoothing(.data$pmf))
+                mutate(pmf = Fn(y) - Fn(y - 1)) %>%
+                mutate(pmf = smoothing(pmf))
             names(tb_real_pmf) <- c("y", target_marker)
             
             # update join
-            tb_pmf <- dplyr::left_join(tb_beads_pmf, tb_real_pmf, by = "y")
+            tb_pmf <- left_join(tb_beads_pmf, tb_real_pmf, by = "y")
             
             # keep track
             convergence[i, ] <- c(i, pi)
@@ -165,7 +165,7 @@ compensate <-
         
         # calculate posterior spillover probability for each cell
         M <- tb_pmf %>% 
-            dplyr::select(tidyselect::all_of(all_markers)) %>% 
+            select(all_of(all_markers)) %>% 
             as.matrix()
         PI <- matrix(rep(pi, each = nrow(M)), ncol = ncol(M))
         post_M <- PI * M
@@ -176,18 +176,18 @@ compensate <-
         
         # compensate
         tb_compensate <- tb_real
-        tb_compensate %<>% dplyr::left_join(tb_spill_prob, by = target_marker)
+        tb_compensate %<>% left_join(tb_spill_prob, by = target_marker)
         tb_compensate %<>% 
-            dplyr::mutate(spill_prob = ifelse(is.na(spill_prob), 0, spill_prob))
-        tb_compensate %<>% dplyr::mutate(spill = rbinom(
+            mutate(spill_prob = ifelse(is.na(spill_prob), 0, spill_prob))
+        tb_compensate %<>% mutate(spill = rbinom(
             n = nrow(tb_compensate),
             size = 1,
             prob = tb_compensate$spill_prob
         ))
         tb_compensate %<>%
-            dplyr::mutate(
+            mutate(
                 corrected = ifelse(
-                    .data$spill == 1, NA, .data[[target_marker]]))
+                    spill == 1, NA, .data[[target_marker]]))
         names(tb_compensate)[1] = "uncorrected"
         
         # return spillr object

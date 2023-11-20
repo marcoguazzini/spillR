@@ -22,21 +22,20 @@
 #' @return A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object
 #'
 #' @examples
-#' library(CATALYST)
 #' library(dplyr)
 #' library(magrittr)
 #' bc_key <- c(139, 141:156, 158:176)
-#' sce_bead <- prepData(ss_exp)
-#' sce_bead <- assignPrelim(sce_bead, bc_key, verbose = FALSE)
-#' sce_bead <- applyCutoffs(estCutoffs(sce_bead))
-#' sce_bead <- computeSpillmat(sce_bead)
+#' sce_bead <- CATALYST::prepData(ss_exp)
+#' sce_bead <- CATALYST::assignPrelim(sce_bead, bc_key, verbose = FALSE)
+#' sce_bead <- CATALYST::applyCutoffs(estCutoffs(sce_bead))
+#' sce_bead <- CATALYST::computeSpillmat(sce_bead)
 #' data(mp_cells, package = "CATALYST")
-#' sce <- prepData(mp_cells)
+#' sce <- CATALYST::prepData(mp_cells)
 #' marker_to_barc <- rowData(sce_bead)[,c("channel_name", "is_bc")] %>%
 #'     as_tibble %>%
-#'     dplyr::filter(is_bc == TRUE) %>%
+#'     filter(is_bc == TRUE) %>%
 #'     mutate(barcode = bc_key) %>%
-#'     dplyr::select(marker = channel_name, barcode)
+#'     select(marker = channel_name, barcode)
 #' spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 compCytof <-
     function(sce,
@@ -81,20 +80,20 @@ compCytof <-
                                spillover_markers <-
                                    names(which(sm[, target_marker] > 0))
                                spillover_barcodes <- marker_to_barc %>%
-                                   dplyr::filter(
+                                   filter(
                                        .data$marker %in% spillover_markers) %>%
-                                   dplyr::select("barcode") %>%
+                                   select("barcode") %>%
                                    pull()
                                
                                tb_bead <- counts_bead %>%
-                                   dplyr::filter(
+                                   filter(
                                        .data$barcode %in% spillover_barcodes)%>%
-                                   dplyr::select(
+                                   select(
                                        all_of(c(target_marker, "barcode"))) %>%
                                    mutate(type = "beads")
                                
                                tb_real <- counts_real %>%
-                                   dplyr::select(all_of(target_marker)) %>%
+                                   select(all_of(target_marker)) %>%
                                    mutate(barcode = "none") %>%
                                    mutate(type = "real cells")
                                
@@ -122,7 +121,7 @@ compCytof <-
         # find inactive channels
         used_channel <- rowData(sce_bead)$is_bc
         channels_out <- channel_names[used_channel == FALSE]
-        channels_null <- names(which(sapply(fit_list, is.null)))
+        channels_null <- names(which(vapply(fit_list, is.null, logical(1))))
         channels_out <- union(channels_out, channels_null)
         
         # prepare new assay matrices
