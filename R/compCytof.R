@@ -98,12 +98,13 @@ compCytof <-
                                    mutate(type = "real cells")
                                
                                # rename barcodes to marker names
-                               for (i in seq(length(spillover_barcodes))) {
-                                   ids <- 
-                                       tb_bead$barcode == spillover_barcodes[i]
-                                   tb_bead[ids, "barcode"] <-
-                                       spillover_markers[i]
-                               }
+                               ids <- vapply(
+                                   tb_bead$barcode, 
+                                   function(bc) 
+                                       which(bc  == spillover_barcodes), 
+                                   numeric(1)
+                                   )
+                               tb_bead$barcode <- spillover_markers[ids]
                                
                                spillover_markers <-
                                    setdiff(spillover_markers, target_marker)
@@ -132,8 +133,6 @@ compCytof <-
         data <- data.frame(data)
         colnames(data) <- channel_names
         spillprob <- data
-        
-        rep(NA, ncol(data))
         
         for (i in seq_len(length(channel_names))) {
             if (channel_names[i] %in% channels_out) {

@@ -188,7 +188,7 @@ compensate <-
             mutate(
                 corrected = ifelse(
                     spill == 1, NA, .data[[target_marker]]))
-        names(tb_compensate)[1] = "uncorrected"
+        names(tb_compensate)[1] <- "uncorrected"
         
         # return spillr object
         res <- NULL
