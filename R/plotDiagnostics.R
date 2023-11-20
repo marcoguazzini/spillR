@@ -1,9 +1,11 @@
 #' Compute spillover probability and correct for spillover
 #'
-#' @import dplyr
-#' @import CATALYST
-#' @import tibble
-#' @import ggplot2
+#' @importFrom CATALYST prepData assignPrelim applyCutoffs computeSpillmat 
+#'                      prepData
+#' @importFrom dplyr as_tibble pull mutate
+#' @importFrom tibble tibble
+#' @importFrom ggplot2 ggplot geom_density geom_freqpoly scale_color_manual 
+#'                     scale_linetype_manual geom_line xlab ylab ggtitle aes
 #' @importFrom magrittr %>% %<>%
 #' @importFrom SummarizedExperiment assay rowData assay<-
 #' @importFrom tidyr pivot_longer

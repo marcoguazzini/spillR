@@ -39,17 +39,21 @@ Imports:
     magrittr, 
     tibble, 
     tidyselect,
-    SummarizedExperiment, 
-    S4Vectors, 
     stats, 
-    CATALYST,
     ggplot2,
     tidyr,
-    spatstat.geom
+    spatstat.geom,
+    S4Vectors
+Depends:
+    R (>= 4.3.1),
+    SummarizedExperiment,
+    CATALYST
 Suggests: 
-    knitr, 
-    rmarkdown, 
-    cowplot, 
-    testthat,
-    BiocStyle
+    knitr,
+    rmarkdown,
+    cowplot,
+    testthat (>= 3.0.0),
+    BiocStyle,
+    magick,
+    hexbin
 VignetteBuilder: knitr

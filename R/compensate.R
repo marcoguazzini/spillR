@@ -1,6 +1,7 @@
 #' Compute spillover probability and correct for spillover
 #'
-#' @import dplyr
+#' @importFrom dplyr left_join filter mutate select bind_cols
+#' @importFrom tibble tibble
 #' @importFrom spatstat.geom ewcdf
 #' @importFrom magrittr %>% %<>%
 #' @importFrom tidyselect all_of

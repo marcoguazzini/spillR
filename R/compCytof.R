@@ -1,7 +1,8 @@
 #' Compute spillover probability and correct for spillover
 #'
-#' @import dplyr
-#' @import CATALYST
+#' @importFrom CATALYST prepData assignPrelim applyCutoffs computeSpillmat 
+#'                      prepData
+#' @importFrom dplyr as_tibble pull mutate select
 #' @importFrom magrittr %<>% %>%
 #' @importFrom stats binomial coef glm rbinom rpois
 #' @importFrom SummarizedExperiment assay rowData assay<-

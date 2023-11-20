@@ -1,6 +1,6 @@
 #' Generate dataset for vignettes and simulation studies
 #'
-#' @import tibble
+#' @importFrom tibble tibble
 #' @export
 #'
 #' @return \code{\link[tibble]{tibble}} data frame
