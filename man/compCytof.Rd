@@ -7,16 +7,16 @@
 compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE, runmed_k = 11)
 }
 \arguments{
-\item{sce}{\code{\link[SingleCellExperiment]{SingleCellExperiment}} for the 
+\item{sce}{\code{\link[SingleCellExperiment]{SingleCellExperiment}} for the
 real cells}
 
-\item{sce_bead}{\code{\link[SingleCellExperiment]{SingleCellExperiment}} for 
+\item{sce_bead}{\code{\link[SingleCellExperiment]{SingleCellExperiment}} for
 the bead experiment}
 
-\item{marker_to_barc}{Table that maps the marker to the barcode 
+\item{marker_to_barc}{Table that maps the marker to the barcode
 in the beads experiment}
 
-\item{overwrite}{logical; if TRUE data are overwritten if FALSE 
+\item{overwrite}{logical; if TRUE data are overwritten if FALSE
 data are saved in new columns}
 
 \item{runmed_k}{Integer width of median window for smoothing the ECDF}
@@ -37,10 +37,10 @@ sce_bead <- CATALYST::applyCutoffs(estCutoffs(sce_bead))
 sce_bead <- CATALYST::computeSpillmat(sce_bead)
 data(mp_cells, package = "CATALYST")
 sce <- CATALYST::prepData(mp_cells)
-marker_to_barc <- rowData(sce_bead)[,c("channel_name", "is_bc")] \%>\%
-    as_tibble \%>\%
-    filter(is_bc == TRUE) \%>\%
-    mutate(barcode = bc_key) \%>\%
-    select(marker = channel_name, barcode)
+marker_to_barc <- rowData(sce_bead)[, c("channel_name", "is_bc")] \%>\%
+  as_tibble() \%>\%
+  filter(is_bc == TRUE) \%>\%
+  mutate(barcode = bc_key) \%>\%
+  select(marker = channel_name, barcode)
 spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 }

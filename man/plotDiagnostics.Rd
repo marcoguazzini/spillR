@@ -27,11 +27,11 @@ sce_bead <- CATALYST::applyCutoffs(estCutoffs(sce_bead))
 sce_bead <- CATALYST::computeSpillmat(sce_bead)
 data(mp_cells, package = "CATALYST")
 sce <- CATALYST::prepData(mp_cells)
-marker_to_barc <- rowData(sce_bead)[,c("channel_name", "is_bc")] \%>\%
-    as_tibble \%>\%
-    filter(is_bc == TRUE) \%>\%
-    mutate(barcode = bc_key) \%>\%
-    select(marker = channel_name, barcode)
+marker_to_barc <- rowData(sce_bead)[, c("channel_name", "is_bc")] \%>\%
+  as_tibble() \%>\%
+  filter(is_bc == TRUE) \%>\%
+  mutate(barcode = bc_key) \%>\%
+  select(marker = channel_name, barcode)
 spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 plotDiagnostics(sce, "Yb173Di")
 }
