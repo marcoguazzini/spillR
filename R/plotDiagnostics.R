@@ -17,25 +17,24 @@
 #' @return A list of \code{\link[ggplot2]{ggplot2}} plots
 #'
 #' @examples
+#' library(CATALYST)
 #' library(dplyr)
 #' library(magrittr)
 #' bc_key <- c(139, 141:156, 158:176)
-#' sce_bead <- CATALYST::prepData(ss_exp)
-#' sce_bead <- CATALYST::assignPrelim(sce_bead, bc_key, verbose = FALSE)
-#' sce_bead <- CATALYST::applyCutoffs(estCutoffs(sce_bead))
-#' sce_bead <- CATALYST::computeSpillmat(sce_bead)
+#' sce_bead <- prepData(ss_exp)
+#' sce_bead <- assignPrelim(sce_bead, bc_key, verbose = FALSE)
+#' sce_bead <- applyCutoffs(estCutoffs(sce_bead))
+#' sce_bead <- computeSpillmat(sce_bead)
 #' data(mp_cells, package = "CATALYST")
-#' sce <- CATALYST::prepData(mp_cells)
+#' sce <- prepData(mp_cells)
 #' marker_to_barc <- rowData(sce_bead)[, c("channel_name", "is_bc")] %>%
 #'     as_tibble() %>%
 #'     filter(is_bc == TRUE) %>%
 #'     mutate(barcode = bc_key) %>%
 #'     select(marker = channel_name, barcode)
-#' spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
+#' sce <- spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 #' plotDiagnostics(sce, "Yb173Di")
 plotDiagnostics <- function(sce, ch) {
-    tfm <- function(x) asinh(x / 5)
-
     # before and after correction
     exprs <- sce %>%
         assay("exprs") %>%
@@ -55,8 +54,10 @@ plotDiagnostics <- function(sce, ch) {
         after = compexprs %>% pull(ch)
     )
     p_before_after <- before_after %>%
-        pivot_longer(-.data$cell, names_to = "correction") %>%
-        mutate(correction = factor(correction, levels = c("after", "before"))) %>%
+        pivot_longer(-cell, names_to = "correction") %>%
+        mutate(correction = factor(correction,
+            levels = c("after", "before")
+        )) %>%
         ggplot(aes(value, color = correction, linetype = correction)) +
         geom_freqpoly(alpha = 1.0, bins = 50, linewidth = 0.8) +
         scale_color_manual(values = c("#00BFC4", "#F8766D")) +
@@ -72,11 +73,11 @@ plotDiagnostics <- function(sce, ch) {
     )
     tb_spill_prob <- metadata(sce)$spillover_est[[ch]]
     p_spill <- tb_bead %>%
-        ggplot(aes(tfm(.data[[ch]]), color = .data$barcode)) +
+        ggplot(aes(tfm(.data[[ch]]), color = barcode)) +
         geom_density(adjust = 1, linewidth = 0.8) +
         geom_line(
             data = tb_spill_prob,
-            aes(tfm(.data[[ch]]), .data$spill_prob),
+            aes(tfm(.data[[ch]]), spill_prob),
             color = "black",
             linewidth = 0.8
         ) +

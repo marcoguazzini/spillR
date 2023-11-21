@@ -45,7 +45,6 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers,
     }
 
     # parameters and helper functions
-    tfm <- function(x) asinh(x / 5)
     smoothing <- function(pmf) {
         pmf_smooth <- runmed(pmf, k = runmed_k)
         pmf_smooth / sum(pmf_smooth)
