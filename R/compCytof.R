@@ -124,6 +124,7 @@ compCytof <-
         channels_out <- channel_names[used_channel == FALSE]
         channels_null <- names(which(vapply(fit_list, is.null, logical(1))))
         channels_out <- union(channels_out, channels_null)
+        channels_in <- setdiff(channel_names, channels_out)
         
         # prepare new assay matrices
         data <-
@@ -134,24 +135,21 @@ compCytof <-
         colnames(data) <- channel_names
         spillprob <- data
         
-        for (i in seq_len(length(channel_names))) {
-            if (channel_names[i] %in% channels_out) {
-                # no correction
-                data[, i] <- counts_real[, channel_names[i]]
-                
-            }
-            else {
-                # keep the corrected counts
-                tb_compensate <-
-                    fit_list[[channel_names[i]]]$tb_compensate
-                data[, i]      <- tb_compensate$corrected
-                
-                # keep the smoothed spillover probability for diagnostic plots
-                spillprob[, i] <- tb_compensate$spill_prob
-                
-            }
-        }
+        # no correction
+        data[, channels_out] <- counts_real[, channels_out]
         
+        # keep the corrected counts
+        data[, channels_in] <- lapply(
+            fit_list[channels_in], 
+            function(fit) fit$tb_compensate$corrected
+            )
+        
+        # keep the smoothed spillover probability for diagnostic plots
+        spillprob[, channels_in] <- lapply(
+            fit_list[channels_in], 
+            function(fit) fit$tb_compensate$spill_prob
+        )
+
         # save compensated counts
         c <- ifelse(overwrite, "counts", "compcounts")
         assay(sce, c, FALSE) <- t(data)

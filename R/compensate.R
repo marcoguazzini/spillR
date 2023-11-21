@@ -29,6 +29,7 @@ compensate <-
              spillover_markers,
              runmed_k, 
              n_iter = 1000) {
+        
         # check if any beads
         tb_bead_keep <- tb_bead
         tb_bead <-
@@ -65,27 +66,28 @@ compensate <-
         tb_beads_pmf <- tibble(y = y_min:y_max)
         
         # collect pmf from beads
-        for (marker in spillover_markers) {
-            n <- nrow(filter(tb_bead, .data$barcode == marker))
+        tb_beads_smooth <- lapply(spillover_markers, function(marker) {
+            
+            n <- nrow(filter(tb_bead, barcode == marker))
+            tb <- tibble(y = y_min:y_max,
+                         pmf = 1 / nrow(tb_beads_pmf))
             if (n > 0) {
                 Fn <- tb_bead %>%
-                    filter(.data$barcode == marker) %>%
+                    filter(barcode == marker) %>%
                     pull(all_of(target_marker)) %>%
                     ecdf()
                 tb <- tb_beads_pmf %>%
                     mutate(pmf = Fn(y) - Fn(y - 1)) %>%
                     mutate(pmf = smoothing(pmf)) %>%
                     select(y, pmf)
-                names(tb) <- c("y", marker)
-                tb_beads_pmf %<>% left_join(tb, by = "y")
-            } else {
-                tb <- tibble(y = y_min:y_max,
-                             pmf = 1 / nrow(tb_beads_pmf))
-                names(tb) <- c("y", marker)
-                tb_beads_pmf %<>% left_join(tb, by = "y")
             }
-        }
+            names(tb)[2] <- marker
+            tb[, marker]
+            
+        }) %>% bind_cols()
         
+        tb_beads_pmf <- bind_cols(tb_beads_pmf, tb_beads_smooth)
+
         # --------- step 1: initialize ---------
         
         # uniform prior probability
@@ -114,7 +116,11 @@ compensate <-
         colnames(convergence) <- c("iteration", names(pi))
         convergence[1, ] <- c(1, pi)
         
-        for (i in seq(2, n_iter)) {
+        prev <-  epsilon
+        curr <- -epsilon
+        i <- 2
+        while(i <= n_iter & abs(prev - curr) > epsilon) {
+            
             # E-step
             
             # membership probabilities
@@ -152,15 +158,14 @@ compensate <-
             
             # keep track
             convergence[i, ] <- c(i, pi)
-            
             prev <- convergence[i - 1, target_marker]
             curr <- convergence[i, target_marker]
-            if (abs(prev - curr) < epsilon)
-                break
+            i <- i + 1
+
         }
         
-        convergence <- convergence[seq(i), ]
-        
+        convergence <- convergence[seq(i-1), ]
+
         # --------- spillover probability curve ---------
         
         # calculate posterior spillover probability for each cell
