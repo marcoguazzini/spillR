@@ -36,6 +36,19 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
 
 Mass cytometry makes it possible to count a large number of proteins simultaneously on individual cells [@bandura2009mass; @bendall2011single]. Mass cytometry has less spillover--- measurements from one channel overlap less with those of another---than flow cytometry [@sp-c; @novo2013generalized], but spillover is still a problem and affects downstream analyses such as differential testing [@diffcyt; @seiler2021cytoglmm] or dimensionality reduction [@scater]. Reducing spillover by careful design of experiment is possible [@takahashi2017mass], but a purely experimental approach may not be sufficient nor efficient [@lun2017influence]. @catalyst propose a method for addressing spillover by conducting an experiment on beads. This experiment measures spillover by staining each bead with a single antibody. Their solution relies on an estimate for the spillover matrix using non-negative matrix factorization. The spillover matrix encodes the pairwise spillover proportion between channels. We avoid this step and directly describe the spillover channels and the channel with the true signal using a mixture of nonparametric distributions. Our main new assumption is that the spillover distribution---not just the spillover proportion---from the beads experiment carries over to the biological experiment. Here, we illustrate the `spillR`_R_ package for spillover compensation in mass cytometry.
 
+Our motivation to submit to Bioconductor is to make our package available to a large user base and to ensure its compatibility with other packages that address preprocessing and analysis of mass cytometry data.
+
+# Installation
+
+Install this package.
+
+```{r install-package, eval=FALSE}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("spillR")
+```
+
 # Data
 
 We test our method on one of the example datasets in the `CATALYST` package. The dataset has an experiment with real cells and a corresponding bead experiment. The experiments on real cells has 5,000 peripheral blood mononuclear cells from healthy donors measured on 39 channels. The experiment on beads has 10,000 cells measured on 36 channels. They have single stained bead experiments. The number of beads per mental label range from 112 to 241.
