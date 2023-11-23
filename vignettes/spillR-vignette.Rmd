@@ -82,10 +82,10 @@ The function `compCytof` takes as inputs two Single Cell Experiment (SCE) object
 ```{r compensation-workflow, warning=FALSE}
 # --------- table for mapping markers and barcode ---------
 marker_to_barc <-
-    rowData(sce_bead)[, c("channel_name", "is_bc")] %>%
-    as_tibble() %>%
-    dplyr::filter(is_bc == TRUE) %>%
-    mutate(barcode = bc_key) %>%
+    rowData(sce_bead)[, c("channel_name", "is_bc")] |>
+    as_tibble() |>
+    dplyr::filter(is_bc == TRUE) |>
+    mutate(barcode = bc_key) |>
     select(marker = channel_name, barcode)
 
 # --------- compensate function from spillR package ---------

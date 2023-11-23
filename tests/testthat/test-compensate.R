@@ -1,6 +1,5 @@
 test_that("spillover probability works", {
     library(tibble)
-    library(magrittr)
 
     tb_real <- tibble(
         "marker1" = c(3, 5, 17, 3, 17, 2),

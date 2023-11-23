@@ -1,7 +1,7 @@
 Package: spillR
 Type: Package
 Title: Spillover Compensation for Mass Cytometry Data
-Version: 0.99.1
+Version: 0.99.2
 Authors@R: c(
     person("Marco", "Guazzini",
     email= "m.guazzini@student.maastrichtuniversity.nl", 
@@ -36,7 +36,6 @@ Config/testthat/edition: 3
 RoxygenNote: 7.2.3
 Imports: 
     dplyr, 
-    magrittr, 
     tibble, 
     tidyselect,
     stats, 

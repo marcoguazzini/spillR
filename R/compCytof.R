@@ -3,7 +3,6 @@
 #' @importFrom CATALYST prepData assignPrelim applyCutoffs computeSpillmat
 #'                      prepData
 #' @importFrom dplyr as_tibble pull mutate select
-#' @importFrom magrittr %<>% %>%
 #' @importFrom stats binomial coef glm rbinom rpois
 #' @importFrom SummarizedExperiment assay rowData assay<-
 #' @importFrom S4Vectors metadata metadata<-
@@ -24,7 +23,6 @@
 #' @examples
 #' library(CATALYST)
 #' library(dplyr)
-#' library(magrittr)
 #' bc_key <- c(139, 141:156, 158:176)
 #' sce_bead <- prepData(ss_exp)
 #' sce_bead <- assignPrelim(sce_bead, bc_key, verbose = FALSE)
@@ -32,10 +30,10 @@
 #' sce_bead <- computeSpillmat(sce_bead)
 #' data(mp_cells, package = "CATALYST")
 #' sce <- prepData(mp_cells)
-#' marker_to_barc <- rowData(sce_bead)[, c("channel_name", "is_bc")] %>%
-#'     as_tibble() %>%
-#'     filter(is_bc == TRUE) %>%
-#'     mutate(barcode = bc_key) %>%
+#' marker_to_barc <- rowData(sce_bead)[, c("channel_name", "is_bc")] |>
+#'     as_tibble() |>
+#'     filter(is_bc == TRUE) |>
+#'     mutate(barcode = bc_key) |>
 #'     select(marker = channel_name, barcode)
 #' spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE,
@@ -74,19 +72,19 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE,
         rownames(sm),
         function(target_marker) {
             spillover_markers <- names(which(sm[, target_marker] > 0))
-            spillover_barcodes <- marker_to_barc %>%
-                filter(marker %in% spillover_markers) %>%
-                select("barcode") %>%
+            spillover_barcodes <- marker_to_barc |>
+                filter(marker %in% spillover_markers) |>
+                select("barcode") |>
                 pull()
 
-            tb_bead <- counts_bead %>%
-                filter(barcode %in% spillover_barcodes) %>%
-                select(all_of(c(target_marker, "barcode"))) %>%
+            tb_bead <- counts_bead |>
+                filter(barcode %in% spillover_barcodes) |>
+                select(all_of(c(target_marker, "barcode"))) |>
                 mutate(type = "beads")
 
-            tb_real <- counts_real %>%
-                select(all_of(target_marker)) %>%
-                mutate(barcode = "none") %>%
+            tb_real <- counts_real |>
+                select(all_of(target_marker)) |>
+                mutate(barcode = "none") |>
                 mutate(type = "real cells")
 
             # rename barcodes to marker names

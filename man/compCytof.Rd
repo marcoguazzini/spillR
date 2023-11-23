@@ -30,7 +30,6 @@ Compute spillover probability and correct for spillover
 \examples{
 library(CATALYST)
 library(dplyr)
-library(magrittr)
 bc_key <- c(139, 141:156, 158:176)
 sce_bead <- prepData(ss_exp)
 sce_bead <- assignPrelim(sce_bead, bc_key, verbose = FALSE)
@@ -38,10 +37,10 @@ sce_bead <- applyCutoffs(estCutoffs(sce_bead))
 sce_bead <- computeSpillmat(sce_bead)
 data(mp_cells, package = "CATALYST")
 sce <- prepData(mp_cells)
-marker_to_barc <- rowData(sce_bead)[, c("channel_name", "is_bc")] \%>\%
-    as_tibble() \%>\%
-    filter(is_bc == TRUE) \%>\%
-    mutate(barcode = bc_key) \%>\%
+marker_to_barc <- rowData(sce_bead)[, c("channel_name", "is_bc")] |>
+    as_tibble() |>
+    filter(is_bc == TRUE) |>
+    mutate(barcode = bc_key) |>
     select(marker = channel_name, barcode)
 spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 }
