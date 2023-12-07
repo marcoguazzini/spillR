@@ -12,7 +12,7 @@ author:
   - Department of Mathematical Sciences, University of Copenhagen, Denmark
 - name: Christof Seiler
   affiliation: 
-  - Department of Advanced Computing Sciences, Maastricht University
+  - Department of Advanced Computing Sciences, Maastricht University, The Netherlands
   - Mathematics Centre Maastricht, Maastricht University, The Netherlands
   - Center of Experimental Rheumatology, Department of Rheumatology, University Hospital Zurich, University of Zurich, Switzerland
 date: "`r Sys.Date()`"

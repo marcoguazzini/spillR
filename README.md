@@ -6,10 +6,14 @@ Channel interference in mass cytometry can cause spillover and may result in mis
 
 ## Installation
 
+Our R package is available on [Bioconductor](https://bioconductor.org/packages/spillR):
+
 ```	r
-devtools::install_github("marcoguazzini/spillR")
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+# The following initializes usage of Bioc devel
+BiocManager::install(version='devel')
+
+BiocManager::install("spillR")
 ```
-
-## Example
-
-Vignette: [spillR-vignette.Rmd](vignettes/spillR-vignette.Rmd)
