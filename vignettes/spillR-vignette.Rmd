@@ -3,7 +3,7 @@ title: "spillR Vignette"
 author: 
 - name: Marco Guazzini
   affiliation: 
-  - Department of Advanced Computing Sciences, Maastricht University
+  - Department of Advanced Computing Sciences, Maastricht University, The Netherlands
 - name: Alexander G. Reisach
   affiliation: 
   - Université Paris Cité, CNRS, MAP5, F-75006 Paris, France
