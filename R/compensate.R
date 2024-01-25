@@ -64,12 +64,22 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers,
             pmf = 1 / nrow(tb_beads_pmf)
         )
         if (n > 0) {
-            Fn <- tb_bead |>
+            
+            # Fn <- tb_bead |>
+            #     filter(barcode == marker) |>
+            #     pull(all_of(target_marker)) |>
+            #     ecdf()
+            
+            # smoother
+            y <- tb_bead |>
                 filter(barcode == marker) |>
-                pull(all_of(target_marker)) |>
-                ecdf()
+                pull(target_marker)
+            fit <- density(y, from = y_min, to = y_max)
+            f <- approxfun(fit$x, fit$y)
+            
             tb <- tb_beads_pmf |>
-                mutate(pmf = Fn(y) - Fn(y - 1)) |>
+                #mutate(pmf = Fn(y) - Fn(y - 1)) |>
+                mutate(pmf = f(y)) |>
                 mutate(pmf = smoothing(pmf)) |>
                 select(y, pmf)
         }
