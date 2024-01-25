@@ -44,10 +44,6 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers,
     }
 
     # parameters and helper functions
-    smoothing <- function(pmf) {
-        pmf_smooth <- runmed(pmf, k = runmed_k)
-        pmf_smooth / sum(pmf_smooth)
-    }
     epsilon <- 1 / 10^5
     all_markers <- c(target_marker, spillover_markers)
     y_min <- y_min_real
@@ -58,6 +54,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers,
 
     # collect pmf from beads
     tb_beads_smooth <- lapply(spillover_markers, function(marker) {
+        
         n <- nrow(filter(tb_bead, barcode == marker))
         tb <- tibble(
             y = y_min:y_max,
@@ -65,26 +62,20 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers,
         )
         if (n > 0) {
             
-            # Fn <- tb_bead |>
-            #     filter(barcode == marker) |>
-            #     pull(all_of(target_marker)) |>
-            #     ecdf()
-            
-            # smoother
             y <- tb_bead |>
                 filter(barcode == marker) |>
-                pull(target_marker)
+                pull(all_of(target_marker))
             fit <- density(y, from = y_min, to = y_max)
             f <- approxfun(fit$x, fit$y)
             
             tb <- tb_beads_pmf |>
-                #mutate(pmf = Fn(y) - Fn(y - 1)) |>
                 mutate(pmf = f(y)) |>
-                mutate(pmf = smoothing(pmf)) |>
+                mutate(pmf = pmf/sum(pmf)) |>
                 select(y, pmf)
         }
         names(tb)[2] <- marker
         tb[, marker]
+        
     }) |> bind_cols()
 
     tb_beads_pmf <- bind_cols(tb_beads_pmf, tb_beads_smooth)
@@ -99,12 +90,13 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers,
     names(pi) <- all_markers
 
     # add pmf from real cells
-    Fn <- tb_real |>
-        pull(all_of(target_marker)) |>
-        ecdf()
+    y <- pull(tb_real, all_of(target_marker))
+    fit <- density(y, from = y_min, to = y_max)
+    f <- approxfun(fit$x, fit$y)
+    
     tb_real_pmf <- tibble(y = y_min:y_max) |>
-        mutate(pmf = Fn(y) - Fn(y - 1)) |>
-        mutate(pmf = smoothing(pmf)) |>
+        mutate(pmf = f(y)) |>
+        mutate(pmf = pmf/sum(pmf)) |>
         select(y, pmf)
     names(tb_real_pmf) <- c("y", target_marker)
 
@@ -144,13 +136,15 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers,
         pi <- colSums(pi) / nrow(pi)
 
         # new weighted empirical density estimate
-        Fn <- ewcdf(
-            pull(y_obsv, y),
-            weights = pull(y_obsv, all_of(target_marker))
-        )
+        y <- pull(y_obsv, y)
+        weights = pull(y_obsv, all_of(target_marker))
+        fit <- density(y, from = y_min, to = y_max, weights = weights)
+        f <- approxfun(fit$x, fit$y)
+        
         tb_real_pmf <- tibble(y = y_min:y_max) |>
-            mutate(pmf = Fn(y) - Fn(y - 1)) |>
-            mutate(pmf = smoothing(pmf))
+            mutate(pmf = f(y)) |>
+            mutate(pmf = pmf/sum(pmf)) |>
+            select(y, pmf)
         names(tb_real_pmf) <- c("y", target_marker)
 
         # update join
