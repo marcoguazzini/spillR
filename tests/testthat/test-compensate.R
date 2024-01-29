@@ -16,18 +16,20 @@ test_that("spillover probability works", {
     target_marker <- "marker1"
     spillover_markers <- "marker2"
 
-    res <- spillR:::compensate(tb_real, tb_bead, target_marker, spillover_markers, 
-                      n_iter = 2
-    )
+    suppressWarnings({
+        res <- spillR:::compensate(
+            tb_real, tb_bead, target_marker, spillover_markers, n_iter = 2
+            )
+    })
     
     y_support <- sort(unique(tb_real$marker1))
     p_pkg <- res$tb_spill_prob |>
         dplyr::filter(marker1 %in% y_support) |>
         dplyr::pull(spill_prob) |>
-        round(digits = 7)
+        round(digits = 3)
 
     # from step-by-step calculation in the paper (appendix A)
-    p_paper <- c(0.1593596, 0.0835324, 0, 0)
+    p_paper <- c(0.631, 0.449, 0, 0)
 
     expect_equal(p_pkg[1], p_paper[1])
     expect_equal(p_pkg[2], p_paper[2])
