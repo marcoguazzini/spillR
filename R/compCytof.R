@@ -16,7 +16,7 @@
 #'   in the beads experiment
 #' @param overwrite logical; if TRUE data are overwritten if FALSE
 #'     data are saved in new columns
-#' @param runmed_k Integer width of median window for smoothing the ECDF
+#' @param impute_value Value for counts that are declared as spillover
 #'
 #' @return A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object
 #'
@@ -37,7 +37,7 @@
 #'     select(marker = channel_name, barcode)
 #' spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE,
-                      runmed_k = 11) {
+                      impute_value = NA) {
     if (!("marker" %in% colnames(marker_to_barc))) {
         stop("marker_to_barc needs to have column marker")
     }
@@ -96,7 +96,7 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE,
 
             spillover_markers <- setdiff(spillover_markers, target_marker)
             compensate(
-                tb_real, tb_bead, target_marker, spillover_markers, runmed_k
+                tb_real, tb_bead, target_marker, spillover_markers, impute_value
             )
         }
     )

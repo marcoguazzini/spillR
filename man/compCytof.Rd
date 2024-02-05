@@ -4,7 +4,7 @@
 \alias{compCytof}
 \title{Compute spillover probability and correct for spillover}
 \usage{
-compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE, runmed_k = 11)
+compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE, impute_value = NA)
 }
 \arguments{
 \item{sce}{\code{\link[SingleCellExperiment]{SingleCellExperiment}} for the
@@ -19,7 +19,7 @@ in the beads experiment}
 \item{overwrite}{logical; if TRUE data are overwritten if FALSE
 data are saved in new columns}
 
-\item{runmed_k}{Integer width of median window for smoothing the ECDF}
+\item{impute_value}{Value for counts that are declared as spillover}
 }
 \value{
 A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object

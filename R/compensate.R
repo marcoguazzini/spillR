@@ -10,7 +10,7 @@
 #' @param tb_bead Data frame or tibble with proteins counts of bead experiment
 #' @param target_marker Marker name in real experiment
 #' @param spillover_markers Marker names in bead experiment
-#' @param runmed_k Integer width of median window for smoothing the ECDF
+#' @param impute_value Value for counts that are declared as spillover
 #' @param n_iter Maximum number of EM steps
 #'
 #' @return A list of class \code{spillr} containing
@@ -22,7 +22,7 @@
 #'   \item{target_marker}{input marker in real experiment}
 #'   \item{spillover_markers}{input markers in bead experiment}
 compensate <- function(tb_real, tb_bead, target_marker, spillover_markers,
-                       runmed_k, n_iter = 1000) {
+                       impute_value = NA, n_iter = 1000) {
     # check if any beads
     tb_bead_keep <- tb_bead
     tb_bead <-
@@ -189,7 +189,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers,
     )
     tb_compensate <- mutate(
         tb_compensate,
-        corrected = ifelse(spill == 1, NA, .data[[target_marker]])
+        corrected = ifelse(spill == 1, impute_value, .data[[target_marker]])
     )
     names(tb_compensate)[1] <- "uncorrected"
 

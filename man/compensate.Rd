@@ -9,7 +9,7 @@ compensate(
   tb_bead,
   target_marker,
   spillover_markers,
-  runmed_k,
+  impute_value = NA,
   n_iter = 1000
 )
 }
@@ -22,7 +22,7 @@ compensate(
 
 \item{spillover_markers}{Marker names in bead experiment}
 
-\item{runmed_k}{Integer width of median window for smoothing the ECDF}
+\item{impute_value}{Value for counts that are declared as spillover}
 
 \item{n_iter}{Maximum number of EM steps}
 }
