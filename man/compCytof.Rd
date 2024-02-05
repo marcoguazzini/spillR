@@ -4,7 +4,14 @@
 \alias{compCytof}
 \title{Compute spillover probability and correct for spillover}
 \usage{
-compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE, impute_value = NA)
+compCytof(
+  sce,
+  sce_bead,
+  marker_to_barc,
+  overwrite = FALSE,
+  impute_value = NA,
+  n_cores = 1
+)
 }
 \arguments{
 \item{sce}{\code{\link[SingleCellExperiment]{SingleCellExperiment}} for the
@@ -19,7 +26,9 @@ in the beads experiment}
 \item{overwrite}{logical; if TRUE data are overwritten if FALSE
 data are saved in new columns}
 
-\item{impute_value}{Value for counts that are declared as spillover}
+\item{impute_value}{Imputed value for counts that are declared as spillover}
+
+\item{n_cores}{Number of computing cores}
 }
 \value{
 A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object

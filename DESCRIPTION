@@ -42,7 +42,8 @@ Imports:
     ggplot2,
     tidyr,
     spatstat.geom,
-    S4Vectors
+    S4Vectors,
+    parallel
 Depends:
     R (>= 4.3.0),
     SummarizedExperiment,

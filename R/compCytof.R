@@ -16,7 +16,8 @@
 #'   in the beads experiment
 #' @param overwrite logical; if TRUE data are overwritten if FALSE
 #'     data are saved in new columns
-#' @param impute_value Value for counts that are declared as spillover
+#' @param impute_value Imputed value for counts that are declared as spillover
+#' @param n_cores Number of computing cores
 #'
 #' @return A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object
 #'
@@ -37,7 +38,7 @@
 #'     select(marker = channel_name, barcode)
 #' spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE,
-                      impute_value = NA) {
+                      impute_value = NA, n_cores = 1) {
     if (!("marker" %in% colnames(marker_to_barc))) {
         stop("marker_to_barc needs to have column marker")
     }
@@ -68,7 +69,7 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE,
 
     # --------- iterator over markers ---------
 
-    fit_list <- lapply(
+    fit_list <- mclapply(
         rownames(sm),
         function(target_marker) {
             spillover_markers <- names(which(sm[, target_marker] > 0))
@@ -98,7 +99,8 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE,
             compensate(
                 tb_real, tb_bead, target_marker, spillover_markers, impute_value
             )
-        }
+        }, 
+        mc.cores = n_cores
     )
     names(fit_list) <- rownames(sm)
 
