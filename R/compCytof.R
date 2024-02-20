@@ -18,6 +18,7 @@
 #'     data are saved in new columns
 #' @param impute_value Imputed value for counts that are declared as spillover
 #' @param n_cores Number of computing cores
+#' @param fast logical; if TRUE use the fast version
 #'
 #' @return A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object
 #'
@@ -38,7 +39,7 @@
 #'     select(marker = channel_name, barcode)
 #' spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
 compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE,
-                      impute_value = NA, n_cores = 1) {
+                      impute_value = NA, n_cores = 1, fast = FALSE) {
     if (!("marker" %in% colnames(marker_to_barc))) {
         stop("marker_to_barc needs to have column marker")
     }
@@ -96,9 +97,14 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE,
             tb_bead$barcode <- spillover_markers[ids]
 
             spillover_markers <- setdiff(spillover_markers, target_marker)
-            compensate(
-                tb_real, tb_bead, target_marker, spillover_markers, impute_value
-            )
+            
+            if(!fast) {
+                compensate(tb_real, tb_bead, target_marker, 
+                           spillover_markers, impute_value)
+            } else {
+                compensate_fast(tb_real, tb_bead, target_marker, 
+                                spillover_markers, impute_value)
+            }
         }, 
         mc.cores = n_cores
     )
