@@ -10,7 +10,8 @@ compCytof(
   marker_to_barc,
   overwrite = FALSE,
   impute_value = NA,
-  n_cores = 1
+  n_cores = 1,
+  fast = FALSE
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ data are saved in new columns}
 \item{impute_value}{Imputed value for counts that are declared as spillover}
 
 \item{n_cores}{Number of computing cores}
+
+\item{fast}{logical; if TRUE use the fast version}
 }
 \value{
 A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object
