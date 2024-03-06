@@ -4,7 +4,7 @@
 #' @importFrom tibble tibble
 #' @importFrom spatstat.geom ewcdf
 #' @importFrom tidyselect all_of
-#' @importFrom stats binomial coef glm rbinom rpois runmed ecdf
+#' @importFrom stats binomial coef glm rbinom rpois runmed ecdf density approxfun
 #'
 #' @param tb_real Data frame or tibble with proteins counts of real experiment
 #' @param tb_bead Data frame or tibble with proteins counts of bead experiment

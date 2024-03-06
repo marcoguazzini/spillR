@@ -6,6 +6,7 @@
 #' @importFrom stats binomial coef glm rbinom rpois
 #' @importFrom SummarizedExperiment assay rowData assay<-
 #' @importFrom S4Vectors metadata metadata<-
+#' @importFrom parallel mclapply
 #' @export
 #'
 #' @param sce \code{\link[SingleCellExperiment]{SingleCellExperiment}} for the
