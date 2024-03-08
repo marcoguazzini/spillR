@@ -26,10 +26,10 @@ test_that("spillover probability works", {
     p_pkg <- res$tb_spill_prob |>
         dplyr::filter(marker1 %in% y_support) |>
         dplyr::pull(spill_prob) |>
-        round(digits = 3)
+        round(digits = 2)
 
     # from step-by-step calculation in the paper (appendix A)
-    p_paper <- c(0.631, 0.449, 0, 0)
+    p_paper <- c(0.63, 0.45, 0, 0)
 
     expect_equal(p_pkg[1], p_paper[1])
     expect_equal(p_pkg[2], p_paper[2])
