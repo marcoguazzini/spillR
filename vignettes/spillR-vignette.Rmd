@@ -90,7 +90,8 @@ marker_to_barc <-
 
 # --------- compensate function from spillR package ---------
 sce_spillr <-
-    spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
+    spillR::compCytof(sce, sce_bead, marker_to_barc, impute_value = NA, 
+                      overwrite = FALSE)
 
 # --------- 2d histogram from CATALYST package -------
 as <- c("counts", "exprs", "compcounts", "compexprs")

@@ -15,11 +15,11 @@
 #'   the bead experiment
 #' @param marker_to_barc Table that maps the marker to the barcode
 #'   in the beads experiment
+#' @param impute_value Imputed value for counts that are declared as spillover
 #' @param overwrite logical; if TRUE data are overwritten if FALSE
 #'     data are saved in new columns
-#' @param impute_value Imputed value for counts that are declared as spillover
 #' @param n_cores Number of computing cores
-#' @param fast logical; if TRUE use the fast version
+#' @param naive logical; if TRUE use the naive version
 #'
 #' @return A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object
 #'
@@ -38,9 +38,9 @@
 #'     filter(is_bc == TRUE) |>
 #'     mutate(barcode = bc_key) |>
 #'     select(marker = channel_name, barcode)
-#' spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
-compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE,
-                      impute_value = NA, n_cores = 1, fast = FALSE) {
+#' spillR::compCytof(sce, sce_bead, marker_to_barc, impute_value = NA)
+compCytof <- function(sce, sce_bead, marker_to_barc, impute_value, 
+                      overwrite = FALSE, n_cores = 1, naive = FALSE) {
     if (!("marker" %in% colnames(marker_to_barc))) {
         stop("marker_to_barc needs to have column marker")
     }
@@ -99,12 +99,12 @@ compCytof <- function(sce, sce_bead, marker_to_barc, overwrite = FALSE,
 
             spillover_markers <- setdiff(spillover_markers, target_marker)
             
-            if(!fast) {
+            if(!naive) {
                 compensate(tb_real, tb_bead, target_marker, 
                            spillover_markers, impute_value)
             } else {
-                compensate_fast(tb_real, tb_bead, target_marker, 
-                                spillover_markers, impute_value)
+                compensate_naive(tb_real, tb_bead, target_marker, 
+                                 spillover_markers, impute_value)
             }
         }, 
         mc.cores = n_cores

@@ -8,10 +8,10 @@ compCytof(
   sce,
   sce_bead,
   marker_to_barc,
+  impute_value,
   overwrite = FALSE,
-  impute_value = NA,
   n_cores = 1,
-  fast = FALSE
+  naive = FALSE
 )
 }
 \arguments{
@@ -24,14 +24,14 @@ the bead experiment}
 \item{marker_to_barc}{Table that maps the marker to the barcode
 in the beads experiment}
 
+\item{impute_value}{Imputed value for counts that are declared as spillover}
+
 \item{overwrite}{logical; if TRUE data are overwritten if FALSE
 data are saved in new columns}
 
-\item{impute_value}{Imputed value for counts that are declared as spillover}
-
 \item{n_cores}{Number of computing cores}
 
-\item{fast}{logical; if TRUE use the fast version}
+\item{naive}{logical; if TRUE use the naive version}
 }
 \value{
 A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object
@@ -54,5 +54,5 @@ marker_to_barc <- rowData(sce_bead)[, c("channel_name", "is_bc")] |>
     filter(is_bc == TRUE) |>
     mutate(barcode = bc_key) |>
     select(marker = channel_name, barcode)
-spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
+spillR::compCytof(sce, sce_bead, marker_to_barc, impute_value = NA)
 }

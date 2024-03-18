@@ -20,8 +20,8 @@
 #'   \item{tb_bead}{input bead cells}
 #'   \item{target_marker}{input marker in real experiment}
 #'   \item{spillover_markers}{input markers in bead experiment}
-compensate_fast <- function(tb_real, tb_bead, target_marker, spillover_markers,
-                            impute_value = NA) {
+compensate_naive <- function(tb_real, tb_bead, target_marker, spillover_markers,
+                             impute_value = NA) {
     # check if any beads
     if (nrow(tb_bead) == 0) {
         warning("no beads")

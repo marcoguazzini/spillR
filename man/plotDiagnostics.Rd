@@ -32,6 +32,6 @@ marker_to_barc <- rowData(sce_bead)[, c("channel_name", "is_bc")] |>
     filter(is_bc == TRUE) |>
     mutate(barcode = bc_key) |>
     select(marker = channel_name, barcode)
-sce <- spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
+sce <- spillR::compCytof(sce, sce_bead, marker_to_barc, impute_value = NA)
 plotDiagnostics(sce, "Yb173Di")
 }

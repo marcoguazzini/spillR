@@ -30,7 +30,7 @@
 #'     filter(is_bc == TRUE) |>
 #'     mutate(barcode = bc_key) |>
 #'     select(marker = channel_name, barcode)
-#' sce <- spillR::compCytof(sce, sce_bead, marker_to_barc, overwrite = FALSE)
+#' sce <- spillR::compCytof(sce, sce_bead, marker_to_barc, impute_value = NA)
 #' plotDiagnostics(sce, "Yb173Di")
 plotDiagnostics <- function(sce, ch) {
     # before and after correction
