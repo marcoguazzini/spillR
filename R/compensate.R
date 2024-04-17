@@ -137,7 +137,7 @@ compensate <- function(tb_real, tb_bead, target_marker, spillover_markers,
 
         # new weighted empirical density estimate
         y <- pull(y_obsv, y)
-        weights = pull(y_obsv, all_of(target_marker))
+        weights <- pull(y_obsv, all_of(target_marker))
         fit <- density(y, from = y_min, to = y_max, weights = weights)
         f <- approxfun(fit$x, fit$y)
         
