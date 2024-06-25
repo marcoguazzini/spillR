@@ -1,13 +1,14 @@
 Package: spillR
 Type: Package
 Title: Spillover Compensation in Mass Cytometry Data
-Version: 0.99.10
+Version: 0.99.11
 Authors@R: c(
     person("Marco", "Guazzini",
     email= "m.guazzini@student.maastrichtuniversity.nl", 
     role = c("aut", "cre"), comment = c(ORCID = "0009-0007-8111-5772")), 
     person("Alexander G.", "Reisach" , 
-    email = "alexander.reisach@u-paris.fr", role = "aut"), 
+    email = "alexander.reisach@u-paris.fr", 
+    role = "aut", comment = c(ORCID = "0009-0003-5057-6278")),
     person("Sebastian", "Weichwald",
     email = "sweichwald@math.ku.dk", 
     role = "aut", comment = c(ORCID = "0000-0003-0169-7244")), 
@@ -33,7 +34,7 @@ License: LGPL-3
 Encoding: UTF-8
 LazyData: false
 Config/testthat/edition: 3
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Imports: 
     dplyr, 
     tibble, 

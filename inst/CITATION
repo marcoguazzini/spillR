@@ -7,11 +7,14 @@ citEntry(
     person(given = "Sebastian", family = "Weichwald"),
     person(given = "Christof", family = "Seiler")),
   title = "spillR: Spillover Compensation in Mass Cytometry Data",
-  journal = "bioRxiv 2023.10.04.560870",
-  year = "2023",
+  journal = "Bioinformatics",
+  volume = "40",
+  number = "6",
+  pages = "btae337",
+  year = "2024",
   textVersion = paste(
     "Marco Guazzini, Alexander G. Reisach, Sebastian Weichwald, and Christof Seiler,",
     "spillR: Spillover Compensation in Mass Cytometry Data,",
-    "bioRxiv (2023): 2023.10.04.560870"
+    "Bioinformatics, 2024, 40(6), btae337"
   )
 )
