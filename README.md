@@ -1,6 +1,6 @@
 # spillR
 
-https://academic.oup.com/bioinformatics/article/40/6/btae337/7689679
+Find the paper here: https://academic.oup.com/bioinformatics/article/40/6/btae337/7689679.
 
 ## Description
 
