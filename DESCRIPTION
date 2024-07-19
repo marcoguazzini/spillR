@@ -1,7 +1,7 @@
 Package: spillR
 Type: Package
 Title: Spillover Compensation in Mass Cytometry Data
-Version: 1.1.1
+Version: 1.1.2
 Authors@R: c(
     person("Marco", "Guazzini",
     email= "m.guazzini@student.maastrichtuniversity.nl", 
@@ -42,7 +42,7 @@ Imports:
     stats, 
     ggplot2,
     tidyr,
-    spatstat.geom,
+    spatstat.univar,
     S4Vectors,
     parallel
 Depends:
