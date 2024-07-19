@@ -2,7 +2,7 @@
 #'
 #' @importFrom dplyr left_join filter mutate select bind_cols
 #' @importFrom tibble tibble
-#' @importFrom spatstat.geom ewcdf
+#' @importFrom spatstat.univar ewcdf
 #' @importFrom tidyselect all_of
 #' @importFrom stats binomial coef glm rbinom rpois runmed ecdf
 #'
